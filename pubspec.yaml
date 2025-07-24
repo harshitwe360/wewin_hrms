@@ -1,0 +1,44 @@
+name: attendance
+description: "We Win - HRMS"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.1.1+11
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  intl: ^0.20.2
+  flutter_bloc: ^9.0.0
+  http: ^1.3.0
+  http_interceptor: ^2.0.0
+  equatable: ^2.0.5
+#  upgrader: ^11.3.1
+  swipe_back_detector: ^2.0.0
+  flutter_secure_storage: ^9.2.4  # 8.0.0  - Please don't change this version it effect ios
+  geolocator: ^14.0.2
+  device_info_plus: ^11.3.3
+  flutter_svg: ^2.0.17
+  table_calendar: ^3.2.0
+  connectivity_plus: ^6.1.3
+#  flutter_local_notifications: ^18.0.1
+  url_launcher: ^6.3.1
+  sms_autofill: ^2.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/
+    - assets/icon/
+    - assets/locale/

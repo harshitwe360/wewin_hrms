@@ -1,0 +1,106 @@
+import 'package:flutter/material.dart';
+import '../../core/config/config.dart';
+
+class VerticalLabelValueDown extends StatelessWidget {
+  const VerticalLabelValueDown(
+      {Key? key,
+      this.bgColor,
+      required this.label,
+      required this.value,
+      this.isCircleIcon = false,
+      this.isCircle = false,
+      this.isVerticalLine = false,
+      this.icon,
+      this.leftPadding = 0})
+      : super(key: key);
+
+  final Color? bgColor;
+  final String label;
+  final String value;
+  final bool isCircleIcon;
+  final bool isCircle;
+  final bool isVerticalLine;
+  final IconData? icon;
+  final double leftPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          isVerticalLine
+              ? Container(
+                  height: 35,
+                  width: 5,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+                  ),
+                )
+              : Container(),
+          isCircle
+              ? Container(
+                  margin: const EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const SizedBox(height: 8, width: 8),
+                )
+              : Container(),
+          isCircleIcon
+              ? Container(
+                  margin: const EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      icon ?? Icons.person,
+                      color: AppColors.spacer,
+                      size: 14,
+                    ),
+                  ),
+                )
+              : Container(),
+          if(icon!=null && !isCircleIcon)
+            Padding(
+              padding: const EdgeInsets.only(right: 15.0),
+              child: Icon(icon ?? Icons.mobile_screen_share_outlined),
+            ),
+
+          Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(left: leftPadding, bottom: 2),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: Theme.of(context).textTheme.smallLabel,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: leftPadding, bottom: 3),
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.largeValue,
+                  ),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}

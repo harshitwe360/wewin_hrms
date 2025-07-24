@@ -1,0 +1,2 @@
+/Users/harshitjain/StudioProjects/wewin_projects/attendance/android/app/.cxx/RelWithDebInfo/3903h3h2/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/harshitjain/StudioProjects/wewin_projects/attendance/android/app/.cxx/RelWithDebInfo/3903h3h2/armeabi-v7a/CMakeFiles/rebuild_cache.dir
