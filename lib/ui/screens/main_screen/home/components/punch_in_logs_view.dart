@@ -2,10 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../core/apis/repository/models/punch_logs.dart';
+import '../../../../../core/apis/repository/models/attendance_status.dart';
 import '../../../../../core/config/config.dart';
+import '../../../../../core/utils/server_time.dart';
 import '../bloc/home_bloc.dart';
 
+/// Today's punch log from WinHRMS `GET /api/attendance/today`
+/// (one attendance row per day: punch in, punch out, break, total).
 class PunchInLogsView extends StatelessWidget {
   const PunchInLogsView({super.key, this.animationController, this.animation});
 
@@ -31,181 +34,143 @@ class PunchInLogsView extends StatelessWidget {
   }
 
   Widget _getContentView(BuildContext context) {
-    List<PunchLogs>? punchLogs;
     return Padding(
       padding: PaddingC.boxPadding,
       child: Container(
         decoration: BoxDecorationX.panel,
         child: Column(
-            children: [
-              Padding(
-                  padding: const EdgeInsets.only(top: 18.0, bottom: 15.0),
-                  child: Text(
-                    R.strings.txtPunchLogsTitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.mediumValue,
-                  )),
-              const Divider(color: AppColors.black26),
-              BlocConsumer<HomeBloc, HomeState>(
-                listener: (context, state){
-                  if(state is HomeUnAuthState){
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, AppRoutes.login, (r) => false);
-                  }
-                },
-                builder: (context, state) {
-                  if (state is HomeLoadedState) {
-                    if (state.punchLogs != null && state.punchLogs?.data.isNotEmpty) {
-                      punchLogs = state.punchLogs!.data as List<PunchLogs>;
-                    }
-
-                  }
-                  return _dataTable(punchLogs);
-                  /*return DataTable(
-                      // showBottomBorder:true,
-                      horizontalMargin: 0,
-                      // columnSpacing: 26,
-                      columns: <DataColumn>[
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              R.strings.txtPunchIn,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: AppColors.colorAccent,
-                                  fontWeight: FontWeight.normal,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              R.strings.txtPunchOut,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: AppColors.colorAccent,
-                                  fontWeight: FontWeight.normal,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              R.strings.txtDuration,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: AppColors.colorAccent,
-                                  fontWeight: FontWeight.normal,
-                                  fontStyle: FontStyle.normal),
-                            ),
-                          ),
-                        ),
-                      ],
-                      rows: getRows(punchLogs),
-                  );*/
+          children: [
+            Padding(
+                padding: const EdgeInsets.only(top: 18.0, bottom: 15.0),
+                child: Text(
+                  R.strings.txtPunchLogsTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.mediumValue,
+                )),
+            const Divider(color: AppColors.black26),
+            BlocConsumer<HomeBloc, HomeState>(
+              // Sole place that routes to login on HomeUnAuthState.
+              listener: (context, state) {
+                if (state is HomeUnAuthState) {
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, AppRoutes.login, (r) => false);
                 }
-              ),
-            ],
-          )),
-    );
-  }
-
-  Widget _dataTable(List<PunchLogs>? punchLogs){
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        // showBottomBorder:true,
-        horizontalMargin: 0,
-        // columnSpacing: 26,
-        columns: <DataColumn>[
-          DataColumn(
-            label: Expanded(
-              child: Text(
-                R.strings.txtPunchIn,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: AppColors.colorAccent,
-                    fontWeight: FontWeight.normal,
-                    fontStyle: FontStyle.normal),
-              ),
+              },
+              // Transient states: keep showing the last log.
+              buildWhen: (_, current) =>
+                  current is HomeLoadedState || current is HomeLoadingState,
+              builder: (context, state) {
+                if (state is HomeLoadingState) {
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                        child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2))),
+                  );
+                }
+                final HomeLoadedState? loaded =
+                    state is HomeLoadedState ? state : null;
+                return _log(context, loaded);
+              },
             ),
-          ),
-          DataColumn(
-            label: Expanded(
-              child: Text(
-                R.strings.txtPunchOut,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: AppColors.colorAccent,
-                    fontWeight: FontWeight.normal,
-                    fontStyle: FontStyle.normal),
-              ),
-            ),
-          ),
-          DataColumn(
-            label: Expanded(
-              child: Text(
-                R.strings.txtDuration,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: AppColors.colorAccent,
-                    fontWeight: FontWeight.normal,
-                    fontStyle: FontStyle.normal),
-              ),
-            ),
-          ),
-        ],
-        rows: getRows(punchLogs),
+          ],
+        ),
       ),
     );
   }
 
-  List<DataRow> getRows(List<PunchLogs>? punchLogs) {
-    List<DataRow> rows = [];
-    if (punchLogs != null && punchLogs.isNotEmpty) {
-      for (PunchLogs item in punchLogs) {
-        int sec = 0;
-        final date = AppHelper.timeStrToDateTime(item.inTime,
-            date: item.attendDate).toLocal();
-        final date2 = item.outTime.isNotEmpty && item.outTime != '00:00:00'
-            ? AppHelper.timeStrToDateTime(item.outTime,
-                          date: item.attendDate).toLocal()
-            : DateTime.now();
-        sec += (date2.difference(date).inSeconds);
-        rows.add(DataRow(
-          cells: <DataCell>[
-            DataCell(VerticalIconText(
-                text: DateFormat(AppConstants.dateFTime).format(date),
-                style: const TextStyle(fontWeight: FontWeight.w500),
-                svgPath: R.icon.punchIn,
-                iconColor: AppColors.punchIn)),
-            DataCell(VerticalIconText(
-                text: item.outTime.isNotEmpty && item.outTime != '00:00:00'
-                    ? DateFormat(AppConstants.dateFTime).format(date2)
-                    : " - ",
-                style: const TextStyle(fontWeight: FontWeight.w500),
-                svgPath: R.icon.punchOut,
-                iconColor: AppColors.punchOut)),
-            DataCell(VerticalIconText(
-                isExpanded: true,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-                text: item.outTime.isNotEmpty && item.outTime != '00:00:00'
-                    ? AppHelper.stringToTime(sec.toString())
-                    : " - ")),
-          ],
-        ));
-      }
-    } else {
-      rows.add(DataRow(
-        cells: <DataCell>[
-          const DataCell(Text('')),
-          DataCell(Text(R.strings.msgNoRecordFound)),
-          const DataCell(Text('')),
+  Widget _log(BuildContext context, HomeLoadedState? state) {
+    final AttendanceStatus? t = state?.today;
+    final bool hasPunch = t != null && t.punchInAt != null;
+    return Column(
+      children: [
+        _row(
+          header: true,
+          cells: [R.strings.txtPunchIn, R.strings.txtPunchOut, R.strings.txtDuration],
+        ),
+        if (!hasPunch)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+            child: Text(R.strings.msgNoRecordFound,
+                style: const TextStyle(color: AppColors.lightGray)),
+          )
+        else ...[
+          _row(cells: [
+            _time(t.punchInAt),
+            t.isPunchedOut
+                ? _time(t.punchOutAt)
+                : (t.isOnBreak ? "On break" : "Working"),
+            _duration(state!.workedSecondsAt(DateTime.now())),
+          ], icons: true, live: !t.isPunchedOut),
+          if (t.breakSeconds > 0 || t.isOnBreak)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.free_breakfast_outlined,
+                      size: 16, color: AppColors.lightGray),
+                  const SizedBox(width: 6),
+                  Text(
+                    t.isOnBreak && t.breakStartedAt != null
+                        ? "On break since ${_time(t.breakStartedAt)}"
+                        : "Break: ${_duration(t.breakSeconds)}",
+                    style:
+                        const TextStyle(color: AppColors.lightGray, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 14),
         ],
-      ));
-    }
-    return rows;
+      ],
+    );
+  }
+
+  Widget _row({required List<String> cells, bool header = false,
+      bool icons = false, bool live = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          for (int i = 0; i < cells.length; i++)
+            Expanded(
+              child: header
+                  ? Text(cells[i],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.colorAccent))
+                  : icons && i < 2
+                      ? VerticalIconText(
+                          text: cells[i],
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          svgPath: i == 0 ? R.icon.punchIn : R.icon.punchOut,
+                          iconColor: i == 0 ? AppColors.punchIn : AppColors.punchOut)
+                      : Text(
+                          cells[i],
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: live && i == 2
+                                  ? AppColors.punchIn
+                                  : AppColors.darkText),
+                        ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Office (IST) clock time.
+  static String _time(DateTime? t) => t == null
+      ? " - "
+      : DateFormat(AppConstants.dateFTime).format(ServerTime.toIst(t));
+
+  static String _duration(int seconds) {
+    final d = Duration(seconds: seconds < 0 ? 0 : seconds);
+    return "${d.inHours.toString().padLeft(2, '0')}:"
+        "${(d.inMinutes % 60).toString().padLeft(2, '0')}:"
+        "${(d.inSeconds % 60).toString().padLeft(2, '0')}";
   }
 }

@@ -4,7 +4,7 @@ import '../../core/config/config.dart';
 class IconsButton extends StatelessWidget {
   final Function onPressed;
   final IconData? icon;
-  const IconsButton({Key? key, required this.onPressed, this.icon}) : super(key: key);
+  const IconsButton({super.key, required this.onPressed, this.icon});
 
   @override
   Widget build(BuildContext context) {

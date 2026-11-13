@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/config/config.dart';
-import '../../../../core/apis/repository/models/filter_model.dart';
-import 'bloc/calendar_cubit.dart';
 import 'components/calendar_view.dart';
-import 'components/member_name_view.dart';
-import 'components/punch_hours_view.dart';
 
 class MyAttendance extends StatefulWidget {
   const MyAttendance({super.key,
@@ -25,24 +19,10 @@ class _MyAttendanceState extends State<MyAttendance>
     with TickerProviderStateMixin {
   List<Widget> listViews = <Widget>[];
 
-  Future<void> onRefresh() async {
-    AuthService.instance.isUserActive().then((isTokenRefresh) {
-      context.read<CalendarCubit>().getCalendarInitData(FilterModel(
-            userId: widget.userId,
-            startDate: AppHelper.firstDayOfMonth(),
-            endDate: AppHelper.lastDayOfMonth()
-        ));
-    }, onError: (e) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-    }).catchError((handleError) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-    });
-  }
-
   @override
   void initState() {
+    // CalendarView loads its month (WinHRMS monthly-attendance) itself.
     addAllListData();
-    onRefresh();
 
     super.initState();
   }

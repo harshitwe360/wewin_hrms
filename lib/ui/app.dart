@@ -4,7 +4,7 @@ import '../core/config/config.dart';
 
 class MyApp extends StatelessWidget {
   final String? startRoute;
-  const MyApp({Key? key, this.startRoute}) : super(key: key);
+  const MyApp({super.key, this.startRoute});
 
   @override
   Widget build(BuildContext context) {

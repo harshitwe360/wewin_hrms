@@ -3,15 +3,14 @@ import 'package:flutter_svg/svg.dart';
 
 class VerticalIconText extends StatelessWidget {
   const VerticalIconText(
-      {Key? key,
+      {super.key,
       this.text,
       this.svgPath,
       this.icon,
       this.iconColor,
       this.style,
       this.size,
-      this.isExpanded = false})
-      : super(key: key);
+      this.isExpanded = false});
   final String? text;
   final String? svgPath;
   final IconData? icon;

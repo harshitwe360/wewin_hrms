@@ -5,7 +5,7 @@ part 'locale_state.dart';
 
 /// /* In view use -> AppLocalization.of(context).text("Title"),
 /// * To change the language by button use ->
-/// * BlocProvider.of<LocaleCubit>(context).toHindi(); */
+/// * `BlocProvider.of<LocaleCubit>(context).toHindi();` */
 class LocaleCubit extends Cubit<LocaleState> {
   // Passing an initial value (state) with a default 'Locale' to the super class.
   LocaleCubit() : super(const SelectedLocale(Locale('en', '')));

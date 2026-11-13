@@ -28,22 +28,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
   
   Future<void> _onRefresh() async {
-    AuthService.instance.isUserActive().then((isTokenRefresh) {
-      context.read<HomeBloc>()
-          .add(DashboardEvent(dateFilter: AppHelper.dateFormat()));
-    }, onError: (e) {
-      Navigator.pushNamedAndRemoveUntil(
-          context, AppRoutes.login, (r) => false);
-    }).catchError((handleError) {
-      Navigator.pushNamedAndRemoveUntil(
-          context, AppRoutes.login, (r) => false);
-    });
+    // Missing/rejected sessions surface as HomeUnAuthState → login.
+    context.read<HomeBloc>()
+        .add(DashboardEvent(dateFilter: AppHelper.dateFormat()));
   }
+
+  late final Future<void> _initialLoad;
 
   @override
   void initState() {
-    // _fetchData();
     super.initState();
+    // Built once; FutureBuilder used to call _fetchData() on every rebuild.
+    _initialLoad = _fetchData();
   }
 
   Future<List<Widget>> _buildWidgetList() async {
@@ -77,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return RefreshIndicator(
       onRefresh: () => _onRefresh(),
       child: FutureBuilder(
-          future: _fetchData(),
+          future: _initialLoad,
           builder: (context, snapshot) {
           return CustomScrollView(
               slivers: <Widget>[

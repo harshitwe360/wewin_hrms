@@ -6,12 +6,11 @@ import '../../core/config/config.dart';
 
 class FilterCalendarView extends StatefulWidget {
   const FilterCalendarView(
-      {Key? key,
+      {super.key,
       this.animationController,
       this.animation,
       required this.filter,
-      required this.callBack})
-      : super(key: key);
+      required this.callBack});
 
   final AnimationController? animationController;
   final Animation<double>? animation;
@@ -112,7 +111,7 @@ class _FilterCalendarViewState extends State<FilterCalendarView>
                 color: AppColors.colorAccent, shape: BoxShape.circle),
             // isTodayHighlighted: false,
             todayDecoration: BoxDecoration(
-                color: AppColors.colorAccent.withOpacity(0.5),
+                color: AppColors.colorAccent.withValues(alpha: 0.5),
                 shape: BoxShape.circle),
             todayTextStyle: const TextStyle(color: Colors.white)),
       ),

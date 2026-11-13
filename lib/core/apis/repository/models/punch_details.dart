@@ -90,7 +90,7 @@ class UserInOutByUser {
 
   Map<String, dynamic> toJson() => {
         "id": id,
-        "userId": userId == null ? null : userId!.toJson(),
+        "userId": userId?.toJson(),
         "punchIn": punchIn,
         "punchOut": punchOut,
         "pk": pk,

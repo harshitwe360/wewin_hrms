@@ -28,6 +28,7 @@ class AuthResponse {
   final String token;
   final String schema;
   final String refreshToken;
+  /// Minutes, from WinHRMS `Token.expires_in_minutes` (-1 if unknown).
   final int expiresIn;
   final bool success;
   final String message;
@@ -53,10 +54,12 @@ class AuthResponse {
       );
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
-        token: json["data"] == null ? "" : json["data"]["token"] ?? "",
+        token: json["access_token"] ??
+            (json["data"] is Map ? json["data"]["token"] : null) ??
+            "",
         schema: json["schema_name"] ?? "",
         refreshToken: json["refresh_token"] ?? "",
-        expiresIn: json["expires_in"] ?? -1,
+        expiresIn: json["expires_in_minutes"] ?? json["expires_in"] ?? -1,
         message: "${json["detail"] ?? json["message"] ?? ""}",
         success: json["success"] ?? false,
         user: json["data"] == null ? null : User.fromJson(json["data"]),
@@ -67,7 +70,7 @@ class AuthResponse {
         "success": success,
         "schema_name": schema,
         "refresh_token": refreshToken,
-        "expires_in": expiresIn,
+        "expires_in_minutes": expiresIn,
         "access_token": token,
         "data": user?.toJson()
       };
@@ -98,6 +101,19 @@ class User {
   final bool? isactive;
   final bool isCorrection;
 
+  // WinHRMS `/api/auth/me` (CurrentUserResponse)
+  final String? employeeId;
+  final String? status;
+  final String? tenantSlug;
+  final String? tenantName;
+  final bool locationMandatory;
+  final bool faceMandatory;
+  final List<String> processNames;
+  final List<String> pagePermissions;
+  final List<String> features;
+
+  bool get isActive => status == null ? (isactive ?? false) : status == "active";
+
   User({
     this.userId = "0",
     this.token,
@@ -122,7 +138,41 @@ class User {
     this.resign,
     this.isactive = false,
     this.isCorrection = false,
+    this.employeeId,
+    this.status,
+    this.tenantSlug,
+    this.tenantName,
+    this.locationMandatory = false,
+    this.faceMandatory = false,
+    this.processNames = const [],
+    this.pagePermissions = const [],
+    this.features = const [],
   });
+
+  /// Maps WinHRMS `GET /api/auth/me` onto the app's User.
+  factory User.fromMe(Map<String, dynamic> json) => User(
+    userId: (json["id"] ?? "0").toString(),
+    employeeId: json["employee_id"]?.toString(),
+    name: json["full_name"],
+    emailId: json["email"],
+    workEmailId: json["email"],
+    role: json["role"]?.toString() ?? "",
+    status: json["status"]?.toString(),
+    isactive: json["status"] == "active",
+    photo: json["avatar_url"],
+    companyName: json["tenant_name"],
+    tenantSlug: json["tenant_slug"],
+    tenantName: json["tenant_name"],
+    processName: _strList(json["process_names"]).join(", "),
+    locationMandatory: json["location_mandatory"] ?? false,
+    faceMandatory: json["face_mandatory"] ?? false,
+    processNames: _strList(json["process_names"]),
+    pagePermissions: _strList(json["page_permissions"]),
+    features: _strList(json["features"]),
+  );
+
+  static List<String> _strList(dynamic v) =>
+      v is List ? v.map((e) => e.toString()).toList() : const [];
 
   factory User.fromRawJson(String str) => User.fromJson(json.decode(str));
 
@@ -152,6 +202,15 @@ class User {
     role: json["role_name"] ?? "",
     isactive: json["isactive"] ?? false,
     isCorrection: json["isCorrection"] ?? false,
+    employeeId: json["employee_id"]?.toString(),
+    status: json["status"]?.toString(),
+    tenantSlug: json["tenant_slug"],
+    tenantName: json["tenant_name"],
+    locationMandatory: json["location_mandatory"] ?? false,
+    faceMandatory: json["face_mandatory"] ?? false,
+    processNames: _strList(json["process_names"]),
+    pagePermissions: _strList(json["page_permissions"]),
+    features: _strList(json["features"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -178,6 +237,15 @@ class User {
     "role_name":role,
     "isactive": isactive,
     "isCorrection": isCorrection,
+    "employee_id": employeeId,
+    "status": status,
+    "tenant_slug": tenantSlug,
+    "tenant_name": tenantName,
+    "location_mandatory": locationMandatory,
+    "face_mandatory": faceMandatory,
+    "process_names": processNames,
+    "page_permissions": pagePermissions,
+    "features": features,
   };
 }
 

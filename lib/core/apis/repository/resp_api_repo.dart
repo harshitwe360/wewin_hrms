@@ -8,11 +8,7 @@ import 'models/auth_response.dart';
 import 'models/xtnd_models.dart';
 
 abstract class RestApiRepository {
-  Future<dynamic> getPunchedStatus({Map<String, dynamic>? variables});
-
   Future<dynamic> getPunchedLogs({required Map<String, dynamic> variables});
-
-  Future<dynamic> setPunchedIn({Map<String, dynamic>? variables});
 
   Future<dynamic> getAttendanceList({required Map<String, dynamic> variables});
 
@@ -38,35 +34,8 @@ class RestApiRepositoryImp extends RestApiRepository {
   factory RestApiRepositoryImp() => _instance ??= RestApiRepositoryImp._();
 
   final ApiBaseHelper _restService = ApiBaseHelper();
-  static const String errorStr = "Exception: Unauthorised:";
-
-  @override
-  Future getPunchedStatus({Map<String, dynamic>? variables}) async {
-    try {
-
-      final response = await _restService.request(
-          url: "${AppConstants.operationalUrl}EmployeeAttendance/GetInOutCheck",
-          method: MethodType.post,
-          checkAuth: true,
-          paramsString: json.encode(variables)
-      );
-
-      debugPrint("response = $response");
-
-      ApiResponse result = apiResponseFromJson(response);
-      final List<PunchLogs> punchLogs = [];
-      if (result.data != null && result.data.isNotEmpty) {
-        final PunchLogs punchLog = punchedStatusFromObj(result.data);
-        punchLogs.add(punchLog);
-      }
-      result = result.copyWith(data: punchLogs);
-      debugPrint("response = ${apiResponseToJson(result)}");
-
-      return Future(() => result);
-    } on Exception catch (e) {
-      return Future.error(e);
-    }
-  }
+  /// `UnauthorisedException().toString()`; blocs compare against this.
+  static const String errorStr = AppConstants.unAuthorization;
 
   @override
   Future getPunchedLogs({required Map<String, dynamic> variables}) async {
@@ -92,32 +61,6 @@ class RestApiRepositoryImp extends RestApiRepository {
 
       return Future.error(response.message);
     } on Exception catch (e) {
-      return Future.error(e);
-    }
-  }
-
-  @override
-  Future<dynamic> setPunchedIn({Map<String, dynamic>? variables}) async {
-    try {
-      final response = await _restService.request(
-        url: "${AppConstants.operationalUrl}EmployeeAttendance/SavePunchInPunchOutData",
-        method: MethodType.post,
-        checkAuth: true,
-        paramsString: json.encode(variables),
-      );
-      ApiResponse result = apiResponseFromJson(response);
-      final List<PunchLogs> punchLogs = [];
-      if (result.status && result.data != null && result.data.isNotEmpty) {
-        final PunchLogs punchLog = punchedStatusFromObj(result.data);
-        punchLogs.add(punchLog);
-        result = result.copyWith(data: punchLogs);
-        debugPrint("response = ${apiResponseToJson(result)}");
-
-        return Future(() => result);
-      }
-      return Future.error(result.message);
-    } on Exception catch (e) {
-      debugPrint("repo catch = $e");
       return Future.error(e);
     }
   }

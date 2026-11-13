@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/config/config.dart';
 
 class VerticalLabelValue extends StatelessWidget{
-  const VerticalLabelValue({Key? key, this.bgColor,
+  const VerticalLabelValue({super.key, this.bgColor,
   required this.label, required this.value, this.isCircleIcon = false, this.isCenterValue = false,
-    this.isVerticalLine = false, this.icon, this.leftPadding = 0}) : super(key: key);
+    this.isVerticalLine = false, this.icon, this.leftPadding = 0});
 
   final Color? bgColor;
   final String label;

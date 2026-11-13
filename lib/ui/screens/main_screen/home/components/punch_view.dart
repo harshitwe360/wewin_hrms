@@ -1,145 +1,148 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-import '../../../../../core/apis/repository/models/punch_logs.dart';
+import '../../../../../core/apis/repository/models/attendance_status.dart';
+import '../../../face_capture/face_capture_screen.dart';
+import '../../../../../core/utils/server_time.dart';
 import 'separated_clock.dart';
 import '../bloc/home_bloc.dart';
-import '../../../../../core/apis/repository/models/auth_response.dart';
 import '../../../../../core/config/config.dart';
 
-class PunchView extends StatefulWidget{
+/// Today's timer and the punch / break actions (WinHRMS attendance).
+class PunchView extends StatelessWidget {
   const PunchView({super.key});
-
-  @override
-  State<PunchView> createState() => _PunchViewState();
-}
-
-class _PunchViewState extends State<PunchView> {
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(R.dimens.panelBoxB),
-        child: containerView()
+      width: double.infinity,
+      padding: EdgeInsets.all(R.dimens.panelBoxB),
+      child: BlocConsumer<HomeBloc, HomeState>(
+        listener: (context, state) async {
+          if (state is HomeBiometricRequiredState) {
+            final HomeBloc bloc = context.read<HomeBloc>();
+            final result = await FaceCaptureScreen.open(context, state.action);
+            if (result != null) bloc.add(PunchCompletedEvent(result: result));
+          } else if (state is HomeErrorState) {
+            AppHelper.showSnackBar(context,
+                snackBarMode: SnackBarMode.error, content: state.message);
+          } else if (state is HomeLoadedState &&
+              (state.actionMessage ?? "").isNotEmpty) {
+            AppHelper.showSnackBar(context,
+                snackBarMode: SnackBarMode.success,
+                content: state.actionMessage!);
+          }
+        },
+        // Error states are transient (the bloc re-emits the last data right
+        // after), so keep showing the previous view for them.
+        buildWhen: (previous, current) =>
+            current is! HomeErrorState && current is! HomeBiometricRequiredState,
+        builder: (context, state) {
+          final HomeLoadedState? loaded =
+              state is HomeLoadedState ? state : null;
+          final AttendanceStatus? today = loaded?.today;
+          final bool ticking =
+              today != null && today.isWorking && !today.isOnBreak;
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 135),
+              ticking
+                  ? StreamBuilder(
+                      stream: Stream.periodic(const Duration(seconds: 1)),
+                      builder: (context, _) => SeparatedClock(
+                          punchInSecCount:
+                              loaded!.workedSecondsAt(DateTime.now())))
+                  : SeparatedClock(
+                      punchInSecCount:
+                          loaded?.workedSecondsAt(DateTime.now()) ?? 0),
+              if (today != null && today.isOnBreak)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(R.strings.txtOnBreak,
+                      style: const TextStyle(
+                          color: AppColors.punchOut,
+                          fontWeight: FontWeight.w600)),
+                ),
+              const SizedBox(height: 24),
+              state is HomeLoadingState
+                  ? const LoaderView(
+                      isDefaultLoader: true,
+                      defaultColor: AppColors.punchButton,
+                      margin: EdgeInsets.only(top: 12.0, bottom: 12))
+                  : _actions(context, today),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget containerView() {
-    return FutureBuilder<AuthResponse>(
-        future: AuthService.instance.getCurrentUserData(),
-        builder: (context, snapshot) {
-          return BlocConsumer<HomeBloc, HomeState>(
-            listener: (context, state) async {
-              if (state is HomeErrorState) {
-                AppHelper.showSnackBar(context,
-                    snackBarMode: SnackBarMode.error, content: state.message);
-                if(state.message == AppConstants.unAuthorization){
-                  Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-                }
-              }
-            },
-            builder: (context, state) {
-              List<PunchLogs> punchLogs = [];
-              List<PunchLogs> punchStatus = [];
-              double sec = 0;
-              if (state is HomeLoadedState) {
-                if (state.punchStatus != null && state.punchStatus?.data!=null) {
-                  punchStatus = state.punchStatus!.data as List<PunchLogs>;
-                  sec = AppHelper.timeToSeconds(time: punchStatus.first.workingTime);
-                }
-                if (state.punchLogs != null && state.punchLogs?.data.isNotEmpty) {
-                  punchLogs = state.punchLogs!.data as List<PunchLogs>;
-                }
-              }
-
-              final bool isPunchIn = punchStatus.isNotEmpty
-                  && (punchStatus.last.inTime.isNotEmpty && punchStatus.last.inTime != "00:00:00")
-                  && (punchStatus.last.outTime.isEmpty || punchStatus.last.outTime == "00:00:00");
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 135),
-                  (punchLogs.isNotEmpty || punchStatus.isNotEmpty)
-                      ? isPunchIn
-                      ? StreamBuilder(
-                      stream:
-                      Stream.periodic(const Duration(seconds: 1)),
-                      builder: (context, snapshot1) {
-                        sec += 1;
-                        return SeparatedClock(punchInSecCount: sec.toInt());
-                      })
-                      : SeparatedClock(punchInSecCount: sec.toInt())
-                      : const SeparatedClock(),
-                  SizedBox(height: 24),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(15.0),
-                  //   child: Text(
-                  //     "General 09:30 AM to 06:30 PM",
-                  //     // (punchStatus.first. != null &&
-                  //     //     snapshot.data?.user?.currentShift !=
-                  //     //         null)
-                  //     //     ? "${AppHelper.timeToAMPM(time: snapshot.data!.user!.currentShift!.startTime)} "
-                  //     //     "TO ${AppHelper.timeToAMPM(time: snapshot.data!.user!.currentShift!.endTime)}"
-                  //     //     : R.strings.txtShift,
-                  //     style: Theme.of(context).textTheme.smallValue,
-                  //   ),
-                  // ),
-
-                  (state is HomeLoadingState)
-                      ? const LoaderView(isDefaultLoader: true,
-                        defaultColor: AppColors.punchButton,
-                        margin: EdgeInsets.only(top: 12.0, bottom: 12))
-                      : _buildActionButton(isPunchIn, punchStatus),
-                ],
-              );
-            },
-          );
-        });
-  }
-
-  Widget _buildActionButton(bool isPunchIn, List<PunchLogs> punchStatus) {
-    return isPunchIn
-        ? ButtonShort(
-            onTap: () async {
-              final isConnected = await NetworkManager().isConnectedToInternet();
-              if (isConnected) {
-                context.read<HomeBloc>().add(PunchInOutEvent(
-                    punchType: PunchType.BtnOut,
-                    todayDate: AppHelper.dateFormat(),
-                    punchOutId: punchStatus.last.id.toString()));
-              } else {
-                _showInternetSnackBar();
-              }
-            },
-            label: R.strings.btnStopWorking,
-            backgroundColor: AppColors.punchOut,
-          )
-        : ButtonShort (
-            onTap: () async {
-              final isConnected = await NetworkManager().isConnectedToInternet();
-              if (isConnected) {
-                context.read<HomeBloc>().add(PunchInOutEvent(
-                    punchType: PunchType.BtnIn,
-                    todayDate: AppHelper.dateFormat()));
-              } else{
-                _showInternetSnackBar();
-              }
-            },
+  Widget _actions(BuildContext context, AttendanceStatus? today) {
+    // Not working right now (never punched in today, or punched out):
+    // offer Punch In again. After a punch-out the last out time is shown.
+    if (today == null || !today.isWorking) {
+      final DateTime? outAt = today?.isPunchedOut == true
+          ? (today!.punchOutAt == null
+              ? null
+              : ServerTime.toIst(today.punchOutAt!))
+          : null;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (outAt != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                "Punched out at ${DateFormat(AppConstants.dateFTime).format(outAt)}",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.lightGray, fontSize: 13),
+              ),
+            ),
+          ButtonShort(
+            onTap: () => _dispatch(context,
+                PunchInOutEvent(punchType: PunchType.btnIn,
+                    todayDate: AppHelper.dateFormat())),
             label: R.strings.btnStartWorking,
             backgroundColor: AppColors.punchIn,
-          );
+          ),
+        ],
+      );
+    }
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 16,
+      children: [
+        ButtonShort(
+          onTap: () => _dispatch(context, BreakEvent(start: !today.isOnBreak)),
+          label: today.isOnBreak
+              ? R.strings.btnEndBreak
+              : R.strings.btnStartBreak,
+          backgroundColor: AppColors.punchButton,
+        ),
+        // Punch-out is only offered when not on break.
+        if (!today.isOnBreak)
+          ButtonShort(
+            onTap: () => _dispatch(context,
+                PunchInOutEvent(punchType: PunchType.btnOut,
+                    todayDate: AppHelper.dateFormat())),
+            label: R.strings.btnStopWorking,
+            backgroundColor: AppColors.punchOut,
+          ),
+      ],
+    );
   }
 
-  void _showInternetSnackBar() {
-    AppHelper.showSnackBar(context,snackBarMode: SnackBarMode.error, content: R.strings.errAPINoNet);
+  Future<void> _dispatch(BuildContext context, HomeEvent event) async {
+    final HomeBloc bloc = context.read<HomeBloc>();
+    if (await NetworkManager().isConnectedToInternet()) {
+      bloc.add(event);
+    } else if (context.mounted) {
+      AppHelper.showSnackBar(context,
+          snackBarMode: SnackBarMode.error, content: R.strings.errAPINoNet);
+    }
   }
 }

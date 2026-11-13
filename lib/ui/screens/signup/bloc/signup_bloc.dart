@@ -1,5 +1,5 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/apis/repository/models/auth_response.dart';
@@ -127,7 +127,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
       process: null,
       isLocationInvalid: event.location==null,
     ));
-    print(state);
+    debugPrint('$state');
   }
 
   void _onProcessChanged(ProcessChanged event, Emitter<SignupState> emit) {
@@ -167,7 +167,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
   }
 
   void _onSubmitted(Submitted event, Emitter<SignupState> emit) async {
-    print("Submit pressed ${state.isFormValid}");
+    debugPrint("Submit pressed ${state.isFormValid}");
 
     if (!state.isFormValid) {
       resetValues(emit, state);

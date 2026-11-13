@@ -10,6 +10,30 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Release signing needs android/key.properties (gitignored; copy
+// android/key.properties and fill it in). Fail early with a clear
+// message instead of Gradle's "missing required property storeFile".
+gradle.taskGraph.whenReady { graph ->
+    def needsRelease = graph.allTasks.any { it.name.toLowerCase().contains("release") }
+    if (!needsRelease) return
+    def missing = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].findAll {
+        !keystoreProperties[it]
+    }
+    if (!keystorePropertiesFile.exists() || !missing.isEmpty()) {
+        throw new GradleException(
+            "Release signing is not configured: " +
+            (keystorePropertiesFile.exists()
+                ? "android/key.properties is missing ${missing.join(', ')}."
+                : "android/key.properties not found.") +
+            " Copy android/key.properties to android/key.properties and fill in the keystore details.")
+    }
+    def store = file(keystoreProperties['storeFile'])
+    if (!store.exists()) {
+        throw new GradleException(
+            "Release keystore not found at ${store.path} (storeFile in android/key.properties is relative to android/app).")
+    }
+}
+
 android {
     namespace = "com.wewin.attendance"
     compileSdk = flutter.compileSdkVersion

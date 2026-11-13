@@ -5,6 +5,17 @@ mixin LoginValidation {
   // static final RegExp _emailRegExp = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+$");
   static final RegExp _aadhaarRegExp = RegExp(r"^\+?[0-9]{10,12}$"); //r"^[0-9]{10}$"
   static final RegExp _emailRegExp = RegExp(r"^\+?[0-9]{10}$");
+  static final RegExp _loginEmailRegExp =
+      RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+
+  /// Login identifier for WinHRMS (email).
+  static bool isValidLoginEmail(String email) {
+    return email.trim().isNotEmpty && _loginEmailRegExp.hasMatch(email.trim());
+  }
+
+  /// Login only checks presence; the server enforces the password policy.
+  static bool isValidLoginPassword(String password) => password.isNotEmpty;
+
   static final RegExp _passwordRegExp = RegExp(r'^[a-zA-Z0-9.!@#$%&’*+/=?^_`{|}~-]{5,30}$'
     // r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,30}$',
   );

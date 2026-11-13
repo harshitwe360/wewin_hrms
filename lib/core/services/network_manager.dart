@@ -38,21 +38,20 @@ class NetworkManager {
       return false;
     }
 
+    // HTTPS: iOS ATS and Android (targetSdk 28+) block cleartext HTTP.
     try {
       final response = await http.get(
-        Uri.parse('http://clients3.google.com/generate_204'),
+        Uri.parse('https://clients3.google.com/generate_204'),
       ).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 204) {
-        return true;
-      }
+      return response.statusCode == 204;
     } on SocketException catch (_) {
       return false;
     } on TimeoutException catch (_) {
       return false;
+    } catch (_) {
+      // Any other client/handshake error: treat as offline, never throw.
+      return false;
     }
-
-    return false;
   }
 
   /// Dispose stream controller when app exits

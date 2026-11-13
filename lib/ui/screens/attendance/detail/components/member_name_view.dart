@@ -11,8 +11,7 @@ class MemberNameView extends StatelessWidget {
   final Color? bgColor;
 
   const MemberNameView(
-      {Key? key, this.animationController, this.animation, this.bgColor})
-      : super(key: key);
+      {super.key, this.animationController, this.animation, this.bgColor});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +20,7 @@ class MemberNameView extends StatelessWidget {
       child: BlocBuilder<CalendarCubit, CalendarState>(
         builder: (context, state) {
           if (state is CalendarLoadedState) {
-            if (state.userAttendance != null) {
+            {
               return Container(
                 decoration: BoxDecorationX.panel,
                 width: double.infinity,
@@ -33,9 +32,9 @@ class MemberNameView extends StatelessWidget {
                     CircleAvatar(
                       backgroundColor: bgColor,
                       radius: 18,
-                      child: state.userAttendance.name.trim().isNotEmpty
+                      child: state.attendance.userName.trim().isNotEmpty
                           ? Text(
-                        AppHelper.getAvatarString(state.userAttendance.name),
+                        AppHelper.getAvatarString(state.attendance.userName),
                         style: Theme.of(context).textTheme.largeXLabel
                             .copyWith(color: AppColors.white),
                       )
@@ -45,7 +44,7 @@ class MemberNameView extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12.0, vertical: 10.0),
-                        child: Text(state.userAttendance.name,
+                        child: Text(state.attendance.userName,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             // textAlign: TextAlign.center,

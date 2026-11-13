@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/config/config.dart';
 
 class VerticalLineLabel extends StatelessWidget{
-  const VerticalLineLabel({Key? key, this.bgColor,
-  required this.label, this.leftPadding = 0}) : super(key: key);
+  const VerticalLineLabel({super.key, this.bgColor,
+  required this.label, this.leftPadding = 0});
 
   final Color? bgColor;
   final String label;

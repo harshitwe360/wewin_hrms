@@ -20,7 +20,17 @@ class AppConstants {
   static const String dateFixEnd = "23:59:59";
   static const String dateFTime = "hh:mm a";
 
+  /// Legacy backend. Still used by dashboard, team attendance, calendar,
+  /// corrections, resign and signup until those are migrated.
   static const String coreServerUrl = "https://api.wewinlimited.com";
+
+  /// WinHRMS backend (auth + attendance). See `ApiEndpoints`.
+  static const String winHrmsServerUrl = "https://winhrms.wewinlimited.com";
+
+  /// The app is pinned to a single tenant.
+  static const String defaultTenantSlug = "default";
+
+  static const Duration requestTimeout = Duration(seconds: 30);
   static const String forgotPasswordUrl = "https://www.wewinlimited.com";
   static const String termsUrl = "https://www.wewinlimited.com";
   // static const String signUpUrl = "https://portal.we360.ai/signup";

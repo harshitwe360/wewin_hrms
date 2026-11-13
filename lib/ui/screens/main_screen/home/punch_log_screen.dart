@@ -70,6 +70,6 @@ class _PunchLogScreenState extends State<PunchLogScreen>
             parent: _animationController!,
             curve: const Interval((1 / count) * 0, 1.0,
                 curve: Curves.fastOutSlowIn))),
-        animationController: _animationController!));
+        animationController: _animationController));
   }
 }

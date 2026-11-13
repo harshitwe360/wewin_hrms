@@ -4,9 +4,8 @@ import '../../core/config/config.dart';
 
 class FullProgressBar extends StatelessWidget {
   const FullProgressBar(
-      {Key? key,
-      required this.percent, this.fillColor, this.padding})
-      : super(key: key);
+      {super.key,
+      required this.percent, this.fillColor, this.padding});
 
   final double percent;
   final Color? fillColor;
@@ -25,7 +24,7 @@ class FullProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: (percent / 100 ), //0.05,
             valueColor: AlwaysStoppedAnimation<Color>(fillColor ?? AppColors.colorAccent),
-            backgroundColor: AppColors.graphBgBar.withOpacity(0.2),
+            backgroundColor: AppColors.graphBgBar.withValues(alpha: 0.2),
           ),
         ),
       ),

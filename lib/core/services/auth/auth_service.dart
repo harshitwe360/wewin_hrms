@@ -26,13 +26,10 @@ class AuthService {
   }
 
   Future<void> clearUserData() async {
-    await isUserActive().then((value) {
-      StorageService.instance
-          .deleteSecureData(StorageItem(AppConstants.loginDetails, ""));
-      StorageService.instance
-          .deleteSecureData(StorageItem(AppConstants.token, ""));
-    });
-    return;
+    await StorageService.instance
+        .deleteSecureData(StorageItem(AppConstants.loginDetails, ""));
+    await StorageService.instance
+        .deleteSecureData(StorageItem(AppConstants.token, ""));
   }
 
   Future<void> clearDomainData() async {
@@ -163,70 +160,30 @@ class AuthService {
     }
   }
 
-  Future<bool> isAdminUser() async {
-    try {
-      AuthResponse auth = AuthResponse();
-      await StorageService.instance
-          .readSecureData(AppConstants.loginDetails)
-          .then((userData) {
-        if (userData != null) {
-          auth = authRespFromJson(userData);
-        }
-      });
-      return auth.user?.role.toLowerCase() == "admin";
-    } on Exception catch (e) {
-      return Future.error(e);
+  /// WinHRMS roles: super_admin, admin, process_admin, manager, employee.
+  static RoleType roleFromString(String? role) {
+    switch ((role ?? "").toLowerCase()) {
+      case "super_admin":
+      case "admin":
+      case "process_admin":
+        return RoleType.admin;
+      case "manager":
+        return RoleType.manager;
+      default:
+        return RoleType.employee;
     }
   }
 
+  Future<bool> isAdminUser() async {
+    return (await getUserRole) == RoleType.admin;
+  }
+
+  /// Role from the stored `/auth/me` user (the WinHRMS JWT carries no
+  /// Keycloak `resource_access` claims).
   Future<RoleType> get getUserRole async {
     try {
-      final String? token = await getToken();
-      final String? clientId = await getTenantId();
-      if (token != null && clientId != null) {
-        final Map<String, dynamic> data = decodeJWTBase64(token);
-        final List<dynamic> roles =
-            data["resource_access"]?[clientId]?["roles"];
-        // print("Role data : $data");
-        // print("Role roles : $roles");
-        if (roles.contains("tenant_owner")) {
-          // print("Admin");
-          return RoleType.admin;
-        }
-      }
-      // print("employee");
-      return RoleType.employee;
-
-      /*AuthResponse auth = AuthResponse();
-      await StorageService.instance.readSecureData(AppConstants.loginDetails)
-          .then((userData) {
-        if (userData != null) {
-          auth = authRespFromJson(userData);
-        }
-      });
-      if(auth.user?.role.toLowerCase() == "manager") {
-        return RoleType.manager;
-      }
-      if(auth.user?.role.toLowerCase() == "admin"){
-        return RoleType.admin;
-      }
-      return RoleType.employee;*/
-    } on Exception catch (e) {
-      return Future.error(e);
-    }
-  }
-
-  Future<bool> isEmUser() async {
-    try {
-      AuthResponse auth = AuthResponse();
-      await StorageService.instance
-          .readSecureData(AppConstants.loginDetails)
-          .then((userData) {
-        if (userData != null) {
-          auth = authRespFromJson(userData);
-        }
-      });
-      return auth.user?.role.toLowerCase() == "admin";
+      final AuthResponse auth = await getCurrentUserData();
+      return roleFromString(auth.user?.role);
     } on Exception catch (e) {
       return Future.error(e);
     }

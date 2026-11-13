@@ -9,7 +9,7 @@ import 'components/attn_user_list.dart';
 import 'bloc/att_user_list/att_user_list_bloc.dart';
 
 class TeamAttendance extends StatelessWidget {
-  TeamAttendance({Key? key}) : super(key: key);
+  TeamAttendance({super.key});
 
   final ScrollController _scrollController = ScrollController();
   final List<TeamAttendanceUserItem> _list = [];

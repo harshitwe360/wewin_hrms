@@ -22,7 +22,7 @@ class VerticalLine extends StatelessWidget{
           borderRadius: BorderRadius.all(Radius.circular(radius ?? 2.0)),
           boxShadow: <BoxShadow>[
             BoxShadow(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 offset: const Offset(1.1, 1.1),
                 blurRadius: 10.0),
           ],

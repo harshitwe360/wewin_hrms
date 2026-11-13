@@ -4,7 +4,7 @@ import 'dart:async';
 
 /// Simple Map of iOS / Android sound ID compatible with [BackgroundGeolocation.playSound].
 ///
-const SOUND_MAP = {
+const soundMapByPlatform = {
   "ios": {
     "LONG_PRESS_ACTIVATE": 1113,
     "LONG_PRESS_CANCEL": 1075,
@@ -166,9 +166,9 @@ class Dialog {
     dynamic soundId = -1;
     Map<String, Object>? soundMap;
     if (defaultTargetPlatform == TargetPlatform.android) {
-      soundMap = SOUND_MAP["android"];
+      soundMap = soundMapByPlatform["android"];
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      soundMap = SOUND_MAP["ios"];
+      soundMap = soundMapByPlatform["ios"];
     }
     if (soundMap != null && soundMap.containsKey(key)) {
       soundId = soundMap[key];

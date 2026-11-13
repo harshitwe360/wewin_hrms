@@ -5,8 +5,7 @@ import '../../../../../../core/apis/repository/models/team_attend_user_list.dart
 import '../../../../../../core/config/config.dart';
 
 class PresentUserItem extends StatelessWidget {
-  const PresentUserItem({Key? key, required this.item, required this.index})
-      : super(key: key);
+  const PresentUserItem({super.key, required this.item, required this.index});
   final TeamAttendanceUserItem item;
   final int index;
 
@@ -23,10 +22,10 @@ class PresentUserItem extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: index % 2 == 0
-                ? AppColors.headYellow.withOpacity(0.8)
+                ? AppColors.headYellow.withValues(alpha: 0.8)
                 : index % 3 == 0
-                    ? AppColors.colorAccent.withOpacity(0.8)
-                    : AppColors.punchIn.withOpacity(0.8),
+                    ? AppColors.colorAccent.withValues(alpha: 0.8)
+                    : AppColors.punchIn.withValues(alpha: 0.8),
             radius: 18,
             backgroundImage: item.imageUrl != null && item.imageUrl!.isNotEmpty
                 ? NetworkImage("${item.imageUrl}") : null,
@@ -62,7 +61,7 @@ class PresentUserItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(
                   25.0,
                 ),
-                color: AppColors.punchOut.withOpacity(0.2),
+                color: AppColors.punchOut.withValues(alpha: 0.2),
               ),
               child: Text(R.strings.txtAbsent, style: Theme.of(context).textTheme.smallLabel.copyWith(color: AppColors.punchOut)),
             ),

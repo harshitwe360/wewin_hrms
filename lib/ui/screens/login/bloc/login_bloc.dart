@@ -1,11 +1,8 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sms_autofill/sms_autofill.dart';
 
-import '../../../../core/apis/repository/models/auth_response.dart';
-import '../../../../core/apis/repository/resp_api_repo.dart';
-import '../../../../core/resources/constants.dart';
+import '../../../../core/apis/repository/attendance_repo.dart';
+import '../../../../core/services/rest_api/app_exception.dart';
 import '../../../../core/services/auth/auth_service.dart';
 import '../../../../core/services/network_manager.dart';
 import '../helper/login_validators.dart';
@@ -17,7 +14,7 @@ part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final AuthRepository _authRepository = AuthRepository();
-  final RestApiRepository _restApiRepository = RestApiRepositoryImp();
+  final AttendanceRepository _attendanceRepository = AttendanceRepository();
 
   LoginBloc() : super(const LoginState()) {
     on<EmailChanged>(_onEmailChanged);
@@ -26,44 +23,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<Submitted>(_onSubmitted);
     // on<GoogleLogin>(_onGoogleSignIn);
     on<RefreshToken>(_onRefreshToken);
-    on<FetchMobileNumber>(_onFetchMobileNumber);
     on<Logout>(_onLogout);
-  }
-
-  Future<void> _onFetchMobileNumber(FetchMobileNumber event,
-      Emitter<LoginState> emit) async {
-    try {
-      String? mobileNumber = await SmsAutoFill().hint;
-      if (mobileNumber != null) {
-        if (mobileNumber.length > 10) {
-          mobileNumber = mobileNumber.substring(mobileNumber.length - 10);
-        }
-        emit(state.copyWith(
-          email: mobileNumber,
-          isEmailInvalid: !LoginValidation.isValidUserName(mobileNumber),
-        ));
-        // emit(MobileNumberLoaded(mobileNumber, isEditable: false));
-      } else {
-        // emit(MobileNumberError('Unable to fetch mobile number'));
-        // add(MakeFieldEditable());
-      }
-    } catch (error) {
-      // emit(MobileNumberError(error.toString()));
-      // add(MakeFieldEditable());
-    }
+    on<SendLoginOtp>(_onSendLoginOtp);
+    on<VerifyLoginOtp>(_onVerifyLoginOtp);
   }
 
   void _onEmailChanged(EmailChanged event, Emitter<LoginState> emit) {
     emit(state.copyWith(
       email: event.email,
-      isEmailInvalid: !LoginValidation.isValidUserName(event.email),
+      isEmailInvalid: !LoginValidation.isValidLoginEmail(event.email),
     ));
   }
 
   void _onPasswordChanged(PasswordChanged event, Emitter<LoginState> emit) {
     emit(state.copyWith(
       password: event.password,
-      // isPasswordInvalid: !LoginValidation.isValidPassword(event.password),
+      // isPasswordInvalid: !LoginValidation.isValidLoginPassword(event.password),
     ));
   }
 
@@ -76,10 +51,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   void _onSubmitted(Submitted event, Emitter<LoginState> emit) async {
 
     if (!state.isFormValid ||
-        !LoginValidation.isValidPassword(state.password)) {
+        !LoginValidation.isValidLoginPassword(state.password)) {
       emit(state.copyWith(
-        isEmailInvalid: !LoginValidation.isValidUserName(state.email),
-        isPasswordInvalid: !LoginValidation.isValidPassword(state.password),
+        isEmailInvalid: !LoginValidation.isValidLoginEmail(state.email),
+        isPasswordInvalid: !LoginValidation.isValidLoginPassword(state.password),
       ));
       return;
     }
@@ -90,7 +65,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final isConnected = await NetworkManager().isConnectedToInternet();
       if (isConnected) {
         bool isLogin =
-        await _authRepository.login(username: username, password: password);
+        await _authRepository.login(email: username, password: password);
         if (isLogin) {
             emit(LoginFinishedState(isSuccess: isLogin));
         } else {
@@ -98,8 +73,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           emit(state.copyWith(
             email: username,
             password: password,
-            isEmailInvalid: !LoginValidation.isValidUserName(username),
-            isPasswordInvalid: !LoginValidation.isValidPassword(password),
+            isEmailInvalid: !LoginValidation.isValidLoginEmail(username),
+            isPasswordInvalid: !LoginValidation.isValidLoginPassword(password),
           ));
         }
       } else {
@@ -107,8 +82,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(state.copyWith(
           email: username,
           password: password,
-          isEmailInvalid: !LoginValidation.isValidUserName(username),
-          isPasswordInvalid: !LoginValidation.isValidPassword(password),
+          isEmailInvalid: !LoginValidation.isValidLoginEmail(username),
+          isPasswordInvalid: !LoginValidation.isValidLoginPassword(password),
         ));
       }
     } catch (e) {
@@ -116,8 +91,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(state.copyWith(
         email: username,
         password: password,
-        isEmailInvalid: !LoginValidation.isValidUserName(username),
-        isPasswordInvalid: !LoginValidation.isValidPassword(password),
+        isEmailInvalid: !LoginValidation.isValidLoginEmail(username),
+        isPasswordInvalid: !LoginValidation.isValidLoginPassword(password),
       ));
     }
   }
@@ -150,57 +125,97 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }*/
 
-  void _onRefreshToken(RefreshToken event, Emitter<LoginState> emit) async {
+  Future<void> _onSendLoginOtp(
+      SendLoginOtp event, Emitter<LoginState> emit) async {
+    final String email = event.email.trim();
+    if (!LoginValidation.isValidLoginEmail(email)) {
+      emit(state.copyWith(email: email, isEmailInvalid: true));
+      return;
+    }
+    final LoginState form = state.copyWith(email: email, isEmailInvalid: false);
     emit(LoginLoadingState());
     try {
-      final isConnected = await NetworkManager().isConnectedToInternet();
-      if (isConnected) {
-        // bool isRefresh = await _authRepository.refreshTokenRequest();
-        emit(LoginFinishedState(isSuccess: true));
+      if (!await NetworkManager().isConnectedToInternet()) {
+        emit(const LoginErrorState(message: "No internet connection"));
       } else {
-        emit(LoginErrorState(message: "Unable to Refresh Token."));
+        final sent = await _authRepository.requestLoginOtp(email: email);
+        emit(LoginOtpSentState(
+            message: sent.message.isNotEmpty
+                ? sent.message : "A one-time code was sent to $email",
+            expiresInSeconds: sent.expiresInSeconds));
       }
     } catch (e) {
-      emit(LoginErrorState(message: e.toString()));
+      emit(LoginErrorState(message: _cleanError(e)));
+    }
+    emit(form);
+  }
+
+  Future<void> _onVerifyLoginOtp(
+      VerifyLoginOtp event, Emitter<LoginState> emit) async {
+    final String email = event.email.trim();
+    final LoginState form = state.copyWith(email: email);
+    emit(LoginLoadingState());
+    try {
+      if (!await NetworkManager().isConnectedToInternet()) {
+        emit(const LoginErrorState(message: "No internet connection"));
+        emit(form);
+        return;
+      }
+      await _authRepository.verifyLoginOtp(email: email, otp: event.otp.trim());
+      emit(LoginFinishedState(isSuccess: true));
+    } catch (e) {
+      emit(LoginErrorState(message: _cleanError(e)));
+      emit(form);
     }
   }
 
+  /// "BadRequest: msg" → "msg" for snackbars.
+  String _cleanError(Object e) =>
+      e.toString().replaceFirst(RegExp(r'^(Exception|[A-Za-z ]+): '), '');
+
+  /// App start: confirm the stored token with `GET /api/auth/me`.
+  void _onRefreshToken(RefreshToken event, Emitter<LoginState> emit) async {
+    emit(LoginLoadingState());
+    try {
+      final bool isValid = await _authRepository.validateSession();
+      emit(LoginFinishedState(isSuccess: isValid));
+    } on ForbiddenException catch (e) {
+      emit(LoginErrorState(message: e.toString()));
+    } on Exception catch (e) {
+      // Offline / timeout / server error: the token was not rejected, so keep
+      // the cached session and let screens retry.
+      final bool hasToken =
+          ((await AuthService.instance.getToken()) ?? "").isNotEmpty;
+      if (hasToken) {
+        emit(LoginFinishedState(isSuccess: true));
+      } else {
+        emit(LoginErrorState(message: e.toString()));
+      }
+    }
+  }
+
+  /// No server logout route: clear the local session. Blocked while the
+  /// user is punched in (from `GET /api/attendance/today`).
   void _onLogout(Logout event, Emitter<LoginState> emit) async {
     emit(LoginLoadingState());
     try {
       final isConnected = await NetworkManager().isConnectedToInternet();
-      if (isConnected) {
-        AuthResponse auth = await AuthService.instance.getCurrentUserData();
-        if (!(auth.user != null && auth.user!.userId.isNotEmpty)) {
-          // AuthService.instance.clearUserData();
-          emit(const LoginErrorState(message: AppConstants.unAuthorization));
-          return Future(() => false);
-        }
-
-        final punchStatus = await _restApiRepository.getPunchedStatus(variables: {
-          "payload":{
-            "userId": auth.user!.userId
-          }
-        });
-        final bool isPunchIn = punchStatus.data.isNotEmpty
-            && (punchStatus.data.last.inTime.isNotEmpty && punchStatus.data.last.inTime != "00:00:00")
-            && (punchStatus.data.last.outTime.isEmpty || punchStatus.data.last.outTime == "00:00:00");
-
-        /*final bool isPunchIn = punchStatus.data.isNotEmpty
-            && punchStatus.data.last.inTime.isNotEmpty
-            && punchStatus.data.last.outTime.isEmpty;*/
-        if(!isPunchIn){
-          AuthService.instance.clearUserData();
-          emit(LoginFinishedState(isSuccess: true));
-        } else {
-          emit(LoginErrorState(
-              message: "You are not allowed to sign out, before punch-out."));
-        }
-        // bool isLogout = await _authRepository.logoutRequest();
-        // emit(LoginFinishedState(isSuccess: isPunchIn));
-      } else {
-        emit(LoginErrorState(message: "Unable to logout."));
+      if (!isConnected) {
+        emit(const LoginErrorState(message: "No internet connection"));
+        return;
       }
+      final today = await _attendanceRepository.getToday();
+      if (today.isWorking) {
+        emit(const LoginErrorState(
+            message: "You are not allowed to sign out, before punch-out."));
+        return;
+      }
+      await AuthService.instance.clearUserData();
+      emit(LoginFinishedState(isSuccess: true));
+    } on UnauthorisedException {
+      // Token already rejected; session was cleared by ApiBaseHelper.
+      await AuthService.instance.clearUserData();
+      emit(LoginFinishedState(isSuccess: true));
     } catch (e) {
       emit(LoginErrorState(message: e.toString()));
     }

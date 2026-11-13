@@ -10,8 +10,7 @@ class CustomButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
 
   const CustomButton(
-      {Key? key, this.onTap, this.label, this.backgroundColor, this.labelColor, this.padding})
-      : super(key: key);
+      {super.key, this.onTap, this.label, this.backgroundColor, this.labelColor, this.padding});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +24,7 @@ class CustomButton extends StatelessWidget {
           borderRadius: const BorderRadius.all(Radius.circular(10.0)),
           boxShadow: <BoxShadow>[
             BoxShadow(
-                color: Colors.grey.withOpacity(0.6),
+                color: Colors.grey.withValues(alpha: 0.6),
                 offset: const Offset(4, 4),
                 blurRadius: 8.0),
           ],

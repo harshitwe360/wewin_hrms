@@ -6,3 +6,5 @@ export 'main_screen/dashboard.dart';
 export 'main_screen/home/punch_log_screen.dart';
 export 'main_screen/profile/profile.dart';
 export 'attendance/single_attendance.dart';
+export 'forgot_password/forgot_password_screen.dart';
+export 'forgot_password/reset_password_screen.dart';

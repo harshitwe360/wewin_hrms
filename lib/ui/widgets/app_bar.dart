@@ -1,4 +1,4 @@
-import 'dart:io' as IO;
+import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../core/config/config.dart';
@@ -81,9 +81,9 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
   final bool isIOSCenter;
 
   const ScrollableAppBar(
-      {Key? key, this.title, this.color, this.textColor, this.iconColor,
+      {super.key, this.title, this.color, this.textColor, this.iconColor,
         this.icon, this.elevation, this.iconPath, this.subTitle,
-        this.isIOSCenter = true}) : super(key: key);
+        this.isIOSCenter = true});
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +97,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
         letterSpacing: 1.2,
         color: Theme.of(context).colorScheme.onBackground,
       ),*/
-      backgroundColor: color ?? Theme.of(context).colorScheme.background,
+      backgroundColor: color ?? Theme.of(context).colorScheme.surface,
       elevation : elevation ?? 10.0,
       expandedHeight: 60.0,
       collapsedHeight: kToolbarHeight + 0.01,
@@ -113,7 +113,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
           alignment: Alignment.bottomCenter,
           child: Row(
               children: [
-                if(IO.Platform.isIOS && isIOSCenter) const SizedBox(width: 40),
+                if(io.Platform.isIOS && isIOSCenter) const SizedBox(width: 40),
             FractionalTranslation(
               translation: const Offset(0.0, 0.0),
               child: InkWell(
@@ -152,7 +152,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                         letterSpacing: 0.8,
-                        color: textColor ?? Theme.of(context).colorScheme.onBackground,
+                        color: textColor ?? Theme.of(context).colorScheme.onSurface,
                       )),
                   if(subTitle!=null)
                     Text("$subTitle",
@@ -162,7 +162,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
                         // letterSpacing: 1.2,
-                        color: textColor ?? Theme.of(context).colorScheme.onBackground,
+                        color: textColor ?? Theme.of(context).colorScheme.onSurface,
                       )),
                 ],
               ),
@@ -180,7 +180,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
       child: Row(
         // mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if(IO.Platform.isIOS) const SizedBox(width: 40),
+            if(io.Platform.isIOS) const SizedBox(width: 40),
             FractionalTranslation(
               translation: const Offset(0.0, 0.0),
               child: InkWell(
@@ -217,7 +217,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
                         fontWeight: FontWeight.w600,
                         fontSize: 18,
                         letterSpacing: 1.2,
-                        color: textColor ?? Theme.of(context).colorScheme.onBackground,
+                        color: textColor ?? Theme.of(context).colorScheme.onSurface,
                       )),
                   Text(title ?? AppConstants.appName,
                       style: TextStyle(
@@ -225,7 +225,7 @@ class ScrollableAppBar extends StatelessWidget implements PreferredSizeWidget{
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                         letterSpacing: 1.2,
-                        color: textColor ?? Theme.of(context).colorScheme.onBackground,
+                        color: textColor ?? Theme.of(context).colorScheme.onSurface,
                       )),
                 ],
               ),

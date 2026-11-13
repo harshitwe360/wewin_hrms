@@ -7,20 +7,19 @@ abstract class VerifyOtpEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class OtpDigitChanged extends VerifyOtpEvent {
-  final int index;
-  final String digit;
+class OtpCodeChanged extends VerifyOtpEvent {
+  final String code;
 
-  const OtpDigitChanged({required this.index, required this.digit});
+  const OtpCodeChanged(this.code);
 
   @override
-  List<Object> get props => [index, digit];
+  List<Object> get props => [code];
 }
 
 class OtpTimerStarted extends VerifyOtpEvent {
   final int duration;
 
-  const OtpTimerStarted({this.duration = 60});
+  const OtpTimerStarted({this.duration = VerifyOtpBloc.resendCooldown});
 
   @override
   List<Object> get props => [duration];
@@ -35,20 +34,22 @@ class OtpTimerTicked extends VerifyOtpEvent {
   List<Object> get props => [remaining];
 }
 
+/// Verifies the code for [mobileNo] (legacy signup API).
 class OtpSubmitted extends VerifyOtpEvent {
-  final String emailId;
+  final String mobileNo;
 
-  const OtpSubmitted({required this.emailId});
+  const OtpSubmitted({required this.mobileNo});
 
   @override
-  List<Object> get props => [emailId];
+  List<Object> get props => [mobileNo];
 }
 
+/// Sends (or re-sends) the signup code to [mobileNo].
 class OtpResendRequested extends VerifyOtpEvent {
-  final String emailId;
+  final String mobileNo;
 
-  const OtpResendRequested({required this.emailId});
+  const OtpResendRequested({required this.mobileNo});
 
   @override
-  List<Object> get props => [emailId];
+  List<Object> get props => [mobileNo];
 }

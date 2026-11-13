@@ -22,8 +22,6 @@ class RefreshToken extends LoginEvent {
   List<Object> get props => [];
 }
 
-class FetchMobileNumber extends LoginEvent {}
-
 class EmailChanged extends LoginEvent {
   final String email;
 
@@ -52,6 +50,27 @@ class IsPasswordVisible extends LoginEvent {
   const IsPasswordVisible();
   @override
   List<Object> get props => [];
+}
+
+/// Email OTP tab: request a one-time code.
+class SendLoginOtp extends LoginEvent {
+  final String email;
+
+  const SendLoginOtp({required this.email});
+
+  @override
+  List<Object> get props => [email];
+}
+
+/// Email OTP tab: verify the code and sign in.
+class VerifyLoginOtp extends LoginEvent {
+  final String email;
+  final String otp;
+
+  const VerifyLoginOtp({required this.email, required this.otp});
+
+  @override
+  List<Object> get props => [email, otp];
 }
 
 class Logout extends LoginEvent {

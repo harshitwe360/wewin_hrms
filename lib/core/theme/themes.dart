@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 
 import '../resources/colors.dart';
 
@@ -163,7 +164,7 @@ extension BoxDecorationX on BoxDecoration{
       borderRadius: const BorderRadius.all(Radius.circular(12.0)),
       boxShadow: <BoxShadow>[
         BoxShadow(
-            color: AppColors.shadowColor.withOpacity(0.2),
+            color: AppColors.shadowColor.withValues(alpha: 0.2),
             offset: const Offset(0.1, 1.1),
             blurRadius: 1.0),
       ],
@@ -179,7 +180,7 @@ extension BoxDecorationX on BoxDecoration{
       ),
       boxShadow: <BoxShadow>[
         BoxShadow(
-            color: AppColors.shadowColor.withOpacity(0.4),
+            color: AppColors.shadowColor.withValues(alpha: 0.4),
             offset: const Offset(1.1, 1.1),
             blurRadius: 10.0),
       ],

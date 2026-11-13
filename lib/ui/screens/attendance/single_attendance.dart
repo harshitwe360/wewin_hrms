@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'detail/bloc/calendar_cubit.dart';
-import 'detail/bloc/calendar_log_cubit.dart';
 import 'detail/my_attendance.dart';
 
 class SingleAttendance extends StatefulWidget {
@@ -39,9 +38,6 @@ class _SingleAttendanceState extends State<SingleAttendance>
         providers: [
           BlocProvider<CalendarCubit>(
             create: (context) => CalendarCubit(),
-          ),
-          BlocProvider<CalendarLogCubit>(
-            create: (context) => CalendarLogCubit(),
           ),
         ],
         child: SafeArea(

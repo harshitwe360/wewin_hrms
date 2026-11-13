@@ -2,72 +2,70 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/login_bloc.dart';
 import '../../../../core/config/config.dart';
+import 'login_styles.dart';
 
-class PasswordInput extends StatelessWidget {
+class PasswordInput extends StatefulWidget {
   const PasswordInput({super.key});
 
   @override
+  State<PasswordInput> createState() => _PasswordInputState();
+}
+
+class _PasswordInputState extends State<PasswordInput> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: ThemeData().colorScheme.copyWith(
-          onSurface: AppColors.white,
-        ),
-      ),
-      child: BlocBuilder<LoginBloc, LoginState>(
-        buildWhen: (previous, current) =>
-            (previous.isPasswordInvalid != current.isPasswordInvalid ||
-                previous.isPasswordVisible != current.isPasswordVisible),
-        builder: (context, state) {
-          return TextFormField(
-            textInputAction: TextInputAction.done,
-            initialValue: state.password,
-            onChanged: (value) =>
-                context.read<LoginBloc>().add(PasswordChanged(password: value)),
-            obscureText: !state.isPasswordVisible,
-            keyboardType: TextInputType.text,
-            style: TextStyle(fontSize: R.dimens.fontSizeLarge,
-                color: AppColors.textDark),
-            decoration: InputDecoration(
-              // border: OutlineInputBorder(
-              //     borderRadius: BorderRadius.circular(10.0),
-              //     borderSide: const BorderSide(color: AppColors.black)
-              // ),
-              // enabledBorder: OutlineInputBorder(
-              //   borderSide: const BorderSide(color: AppColors.colorAccent, width: 1.0),
-              //   borderRadius: BorderRadius.circular(10.0),
-              // ),
-              // focusedBorder: OutlineInputBorder(
-              //   borderSide: const BorderSide(color: AppColors.colorAccent, width: 2.0),
-              //   borderRadius: BorderRadius.circular(10.0),
-              // ),
-              // fillColor: AppColors.white,
-              // filled: true,
-              // labelStyle: const TextStyle(color: AppColors.textLight),
-              // hintStyle: const TextStyle(color: AppColors.textLight),
-              // contentPadding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
-              labelText: R.strings.passwordLabel,
-              hintText: R.strings.passwordHnt,
-              helperText: '',
-              // prefixIconColor: AppColors.white,
-              // prefixIcon: const Icon(Icons.lock, color: AppColors.white),
-              suffixIcon: IconButton(
-                // icon: Icon(Icons.remove_red_eye),
-                icon: state.isPasswordVisible
-                    ? const Icon(Icons.visibility, color: AppColors.black)
-                    : const Icon(Icons.visibility_off, color: AppColors.black),
-                onPressed: () => {
-                  print("Icon Pressed"),
-                  context.read<LoginBloc>().add(const IsPasswordVisible())
-                },
+    return BlocBuilder<LoginBloc, LoginState>(
+      buildWhen: (previous, current) =>
+          current.runtimeType == LoginState &&
+          (previous.isPasswordInvalid != current.isPasswordInvalid ||
+              previous.isPasswordVisible != current.isPasswordVisible),
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LoginFieldLabel(R.strings.passwordLabel),
+            TextFormField(
+              controller: _controller,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              onChanged: (value) => context
+                  .read<LoginBloc>()
+                  .add(PasswordChanged(password: value)),
+              onFieldSubmitted: (_) =>
+                  context.read<LoginBloc>().add(const Submitted()),
+              obscureText: !state.isPasswordVisible,
+              keyboardType: TextInputType.visiblePassword,
+              style: LoginStyle.fieldText,
+              decoration: LoginStyle.input(
+                hint: R.strings.passwordHnt,
+                icon: Icons.lock_outline,
+                errorText:
+                    state.isPasswordInvalid ? R.strings.errorMsgPwd : null,
+                suffix: IconButton(
+                  tooltip: state.isPasswordVisible
+                      ? "Hide password" : "Show password",
+                  icon: Icon(
+                      state.isPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: LoginStyle.icon,
+                      size: 20),
+                  onPressed: () =>
+                      context.read<LoginBloc>().add(const IsPasswordVisible()),
+                ),
               ),
-              errorStyle: TextStyle(fontSize: R.dimens.fontSizeMedium),
-              // errorText: state.password.isNotEmpty && state.isPasswordInvalid
-              errorText: state.isPasswordInvalid ? R.strings.errorMsgPwd : null,
             ),
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 }

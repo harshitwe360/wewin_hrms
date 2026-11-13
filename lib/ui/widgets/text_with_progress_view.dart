@@ -4,12 +4,12 @@ import '../../core/config/config.dart';
 
 class TextWithProgressBar extends StatelessWidget {
   const TextWithProgressBar(
-      {Key? key,
+      {super.key,
         required this.label,
         required this.valueText,
         required this.percent,
         this.fillColor
-      }) : super(key: key);
+      });
 
   final String label;
   final String valueText;
@@ -42,7 +42,7 @@ class TextWithProgressBar extends StatelessWidget {
                         value: (percent / 100) ,
                         valueColor: AlwaysStoppedAnimation<Color>(
                             fillColor ?? AppColors.colorAccent),
-                        backgroundColor: AppColors.graphBgBar.withOpacity(0.2),
+                        backgroundColor: AppColors.graphBgBar.withValues(alpha: 0.2),
                       ),
                     ),
                   ),

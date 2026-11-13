@@ -25,7 +25,7 @@ class ProcessDropDown extends StatelessWidget {
                 context.read<SignupBloc>().add(ProcessChanged(process: newValue));
               }
             },
-            items: state.processList ?? [],
+            items: state.processList,
             errorText: state.isProcessInvalid
                 ? "Invalid Process."
                 : null,

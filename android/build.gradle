@@ -7,7 +7,7 @@ allprojects {
 ext {
     compileSdkVersion   = 34
     targetSdkVersion    = 34
-    minSdkVersion       = 21
+    minSdkVersion       = 24 // camera plugins (flutter_plugin_android_lifecycle) require 24
     appCompatVersion    = "1.4.2"
     playServicesLocationVersion = "21.0.1"
     removeBackgroundGeolocationDebugSoundsInRelease = true

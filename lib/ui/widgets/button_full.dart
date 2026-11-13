@@ -50,7 +50,7 @@ class ButtonFull extends StatelessWidget {
           boxShadow: isShadow
               ? <BoxShadow>[
                   BoxShadow(
-                      color: Colors.grey.withOpacity(0.6),
+                      color: Colors.grey.withValues(alpha: 0.6),
                       offset: const Offset(4, 4),
                       blurRadius: 8.0),
                 ]
@@ -62,7 +62,7 @@ class ButtonFull extends StatelessWidget {
             focusColor: Colors.transparent,
             highlightColor: Colors.transparent,
             hoverColor: Colors.transparent,
-            splashColor: Colors.grey.withOpacity(0.2),
+            splashColor: Colors.grey.withValues(alpha: 0.2),
             borderRadius: const BorderRadius.all(
               Radius.circular(4.0),
             ),

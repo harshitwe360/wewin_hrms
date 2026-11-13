@@ -5,10 +5,14 @@ class Strings {
   String appName = AppLocalization.instance.text('appName');
 
   /* -- Login/ Workspace -- */
-  String loginTopText = AppLocalization.instance.text('loginTopTxt');
+  // Getters (not cached fields) so text always reflects the loaded locale
+  // file, including after a hot reload.
+  String get loginTopText => AppLocalization.instance.text('loginTopTxt');
+  String get loginSubtitle => AppLocalization.instance.text('loginSubtitle');
+  String get loginSubtitleOtp => AppLocalization.instance.text('loginSubtitleOtp');
   String passwordLabel = AppLocalization.instance.text('passwordLabel');
   String passwordHnt = AppLocalization.instance.text('passwordHnt');
-  String errorMsgPwd = AppLocalization.instance.text('errorMsgPswd');
+  String errorMsgPwd = AppLocalization.instance.text('errorMsgPwd');
   String labelEmail = AppLocalization.instance.text('emailLabel');
   String hintEmail = AppLocalization.instance.text('emailHint');
   String errorMsgEmail = AppLocalization.instance.text('errorMsgEmail');
@@ -50,6 +54,9 @@ class Strings {
   String btnViewLogs = AppLocalization.instance.text('btnViewLogs');
   String btnStopWorking = AppLocalization.instance.text('btnStopWorking');
   String btnStartWorking = AppLocalization.instance.text('btnStartWorking');
+  String btnStartBreak = AppLocalization.instance.text('btnStartBreak');
+  String btnEndBreak = AppLocalization.instance.text('btnEndBreak');
+  String txtOnBreak = AppLocalization.instance.text('txtOnBreak');
   String msgNotAllowedPP = AppLocalization.instance.text('msgNotAllowedPP');
   String msgLocationDisable = AppLocalization.instance.text('msgLocationDisable');
   String msgLocationDenied = AppLocalization.instance.text('msgLocationDenied');

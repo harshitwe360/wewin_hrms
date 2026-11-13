@@ -25,7 +25,7 @@ class PresencePieChart extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
                 spreadRadius: 1,
                 blurRadius: 2,
                 offset: const Offset(0, 2), // changes position of shadow
@@ -75,8 +75,7 @@ class MiddleRing extends StatelessWidget {
   final num width;
   final Widget innerContent;
 
-  const MiddleRing({Key? key, required this.width, required this.innerContent})
-      : super(key: key);
+  const MiddleRing({super.key, required this.width, required this.innerContent});
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +83,7 @@ class MiddleRing extends StatelessWidget {
       height: width.toDouble(),
       width: width.toDouble(),
       decoration: BoxDecoration(
-        color: AppColors.graphBgBar.withOpacity(0.2),
+        color: AppColors.graphBgBar.withValues(alpha: 0.2),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -106,7 +105,7 @@ class MiddleRing extends StatelessWidget {
               // Circular shadow
               BoxShadow(
                 offset: const Offset(0.5, 0.5),
-                color: Theme.of(context).colorScheme.background,
+                color: Theme.of(context).colorScheme.surface,
                 spreadRadius: 2.0,
                 blurRadius: 4,
               )
@@ -161,7 +160,7 @@ class ProgressRings extends CustomPainter {
       arcAngle,
       false,
       paint(
-        [colors, colors.withOpacity(0.9), colors.withOpacity(0.8)],
+        [colors, colors.withValues(alpha: 0.9), colors.withValues(alpha: 0.8)],
         startAngle: (0.0).toDouble(),
         endAngle: (pi / 2).toDouble(),
       ),

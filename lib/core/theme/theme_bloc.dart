@@ -5,8 +5,8 @@ import 'theme_state.dart';
 
 /// /* In view use -> AppLocalization.of(context).text("Title"),
 /// * To change the dart mode by button use ->
-/// * context.read<ThemeBloc>().add(ThemeEvent(appTheme: AppTheme.darkTheme));
-/// * BlocProvider.of<ThemeBloc>(context).add(ThemeEvent(appTheme: AppTheme.darkTheme)); */
+/// * `context.read<ThemeBloc>().add(ThemeEvent(appTheme: AppTheme.darkTheme));`
+/// * `BlocProvider.of<ThemeBloc>(context).add(ThemeEvent(appTheme: AppTheme.darkTheme));` */
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   ThemeBloc()

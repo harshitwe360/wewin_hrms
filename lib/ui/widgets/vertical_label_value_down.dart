@@ -3,7 +3,7 @@ import '../../core/config/config.dart';
 
 class VerticalLabelValueDown extends StatelessWidget {
   const VerticalLabelValueDown(
-      {Key? key,
+      {super.key,
       this.bgColor,
       required this.label,
       required this.value,
@@ -11,8 +11,7 @@ class VerticalLabelValueDown extends StatelessWidget {
       this.isCircle = false,
       this.isVerticalLine = false,
       this.icon,
-      this.leftPadding = 0})
-      : super(key: key);
+      this.leftPadding = 0});
 
   final Color? bgColor;
   final String label;

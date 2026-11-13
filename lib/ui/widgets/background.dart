@@ -2,7 +2,6 @@
 import 'package:flutter_svg/svg.dart';
 
 import '../../core/config/r.dart';
-import '../../core/resources/colors.dart';
 
 class BackgroundScreen extends StatelessWidget {
   const BackgroundScreen({super.key});

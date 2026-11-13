@@ -44,15 +44,17 @@ class _DashboardScreenState extends State<DashboardScreen>
     DateTime startDate = DateTime(endDate.year, endDate.month, endDate.day);
     AppsUsage.getUsage(startDate, endDate);*/
 
-    await AuthService.instance.isUserActive().then((isTokenRefresh) {
+    try {
+      await AuthService.instance.isUserActive();
+      if (!mounted) return;
       context
           .read<HomeBloc>()
           .add(DashboardEvent(dateFilter: AppHelper.dateFormat()));
-    }, onError: (e) {
+    } catch (_) {
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-    }).catchError((handleError) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (r) => false);
-    });
+      return;
+    }
     setState(() {});
   }
 
@@ -88,7 +90,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       return; // Skip if already resumed
     }
     isAppResumed = true;
-    print("App resumed — calling PunchLogsEvent");
     context.read<HomeBloc>().add(PunchLogsEvent(dateFilter: AppHelper.dateFormat()));
   }
 

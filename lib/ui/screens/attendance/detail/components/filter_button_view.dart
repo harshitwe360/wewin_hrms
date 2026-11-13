@@ -205,7 +205,7 @@ class _FilterIconBtnViewState extends State<FilterIconBtnView> {
               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(color: AppColors.colorAccent.withOpacity(0.2)),
+                border: Border.all(color: AppColors.colorAccent.withValues(alpha: 0.2)),
                 color: (_selectedTeamOpt.where((p) => p.name == option.name).firstOrNull != null)
                     ? AppColors.colorAccent : null,
               ),
@@ -238,7 +238,7 @@ class _FilterIconBtnViewState extends State<FilterIconBtnView> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(color: AppColors.colorAccent.withOpacity(0.2)),
+                  border: Border.all(color: AppColors.colorAccent.withValues(alpha: 0.2)),
                   color: (_selectedUserOpt == option)
                       ? AppColors.colorAccent : null,
                 ),

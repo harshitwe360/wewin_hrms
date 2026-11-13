@@ -8,8 +8,7 @@ class ErrorView extends StatelessWidget {
   final double? height;
 
   const ErrorView(
-      {Key? key, this.error, this.addScaffold = false, this.height})
-      : super(key: key);
+      {super.key, this.error, this.addScaffold = false, this.height});
 
   @override
   Widget build(BuildContext context) {

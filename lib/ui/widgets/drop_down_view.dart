@@ -19,8 +19,6 @@ class DropDownView extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    print(items);
-    print(value);
     return DropdownButtonFormField<DdModel>(
       isDense: true,
       isExpanded: true,
@@ -29,7 +27,7 @@ class DropDownView extends StatelessWidget{
           labelStyle: labelStyle,
           errorText: errorText,
       ),
-      value: (value!=null && items.contains(value) ? value : items.where(
+      initialValue: (value!=null && items.contains(value) ? value : items.where(
             (item) => item.id == value?.id,
       ).firstOrNull),
       onChanged: onChanged,

@@ -1,61 +1,58 @@
 part of 'verify_otp_bloc.dart';
 
 class VerifyOtpState extends Equatable {
-  final List<String> digits;
-  final bool isValid;
+  /// Digits typed so far.
+  final String code;
   final bool isSubmitting;
   final bool isSuccess;
-  final bool isFailure;
-  final bool isUnAuth;
+
+  /// Last verify/resend failure, shown once by the screen.
+  final String? error;
+
+  /// Set when a code was (re)sent, so the screen can confirm it once.
+  final bool codeSent;
+  final bool isSending;
+
+  /// Seconds until "Resend" is allowed.
   final int timer;
-  final bool canResend;
 
   const VerifyOtpState({
-    required this.digits,
-    this.isValid = false,
+    this.code = "",
     this.isSubmitting = false,
     this.isSuccess = false,
-    this.isFailure = false,
-    this.isUnAuth = false,
-    this.timer = 300,
-    this.canResend = false,
+    this.error,
+    this.codeSent = false,
+    this.isSending = false,
+    this.timer = 0,
   });
 
-  factory VerifyOtpState.initial() {
-    return VerifyOtpState(digits: List.filled(4, ''));
-  }
+  factory VerifyOtpState.initial() => const VerifyOtpState();
+
+  bool get isValid => VerifyOtpBloc.isValidCode(code);
+  bool get canResend => timer == 0 && !isSending;
 
   VerifyOtpState copyWith({
-    List<String>? digits,
-    bool? isValid,
+    String? code,
     bool? isSubmitting,
     bool? isSuccess,
-    bool? isFailure,
-    bool? isUnAuth,
+    String? error,
+    bool clearError = false,
+    bool? codeSent,
+    bool? isSending,
     int? timer,
-    bool? canResend,
   }) {
     return VerifyOtpState(
-      digits: digits ?? this.digits,
-      isValid: isValid ?? this.isValid,
+      code: code ?? this.code,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
-      isFailure: isFailure ?? this.isFailure,
-      isUnAuth: isUnAuth ?? this.isUnAuth,
+      error: clearError ? null : (error ?? this.error),
+      codeSent: codeSent ?? this.codeSent,
+      isSending: isSending ?? this.isSending,
       timer: timer ?? this.timer,
-      canResend: canResend ?? this.canResend,
     );
   }
 
   @override
-  List<Object> get props => [
-    digits,
-    isValid,
-    isSubmitting,
-    isSuccess,
-    isFailure,
-    isUnAuth,
-    timer,
-    canResend,
-  ];
+  List<Object?> get props =>
+      [code, isSubmitting, isSuccess, error, codeSent, isSending, timer];
 }

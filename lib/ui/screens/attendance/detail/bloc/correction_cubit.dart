@@ -1,41 +1,62 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/apis/repository/models/auth_response.dart';
-import '../../../../../core/apis/repository/resp_api_repo.dart';
-import '../../../../../core/services/auth/auth_service.dart';
+import '../../../../../core/apis/repository/attendance_repo.dart';
+import '../../../../../core/apis/repository/models/attendance_correction.dart';
+import '../../../../../core/services/rest_api/app_exception.dart';
 
-enum CorrectionState { initial, loading, success, failure, unauthorised }
+enum CorrectionStatus { initial, submitting, success, failure, unauthorised }
 
+class CorrectionState extends Equatable {
+  const CorrectionState({this.status = CorrectionStatus.initial, this.message});
+
+  final CorrectionStatus status;
+  final String? message;
+
+  @override
+  List<Object?> get props => [status, message];
+}
+
+/// Submits a WinHRMS attendance correction (`POST /api/attendance-corrections`).
 class CorrectionCubit extends Cubit<CorrectionState> {
-  CorrectionCubit() : super(CorrectionState.initial);
+  CorrectionCubit({AttendanceRepository? repository})
+      : _repo = repository ?? AttendanceRepository(),
+        super(const CorrectionState());
 
-  final RestApiRepository _restApiRepository = RestApiRepositoryImp();
+  final AttendanceRepository _repo;
 
-  Future<void> submitCorrection(String reason, DateTime date) async {
-    emit(CorrectionState.loading);
+  static const int minReasonLength = 10;
+  static const int maxReasonLength = 2000;
+
+  void reset() => emit(const CorrectionState());
+
+  Future<void> submit({
+    required DateTime date,
+    required CorrectionType type,
+    required String reason,
+    String? punchIn,
+    String? punchOut,
+  }) async {
+    if (state.status == CorrectionStatus.submitting) return;
+    emit(const CorrectionState(status: CorrectionStatus.submitting));
     try {
-      AuthResponse auth = await AuthService.instance.getCurrentUserData();
-      if (!(auth.user != null && auth.user!.userId.isNotEmpty)) {
-        AuthService.instance.clearUserData();
-        emit(CorrectionState.unauthorised);
-        return Future(() => false);
-      }
-
-      await _restApiRepository.submitAttendCorrection(variables: {
-        "userId": auth.user!.userId,
-        "Remarks": reason,
-        "Date": date.toIso8601String()
-      }).then((user){
-        emit(CorrectionState.success);
-      }, onError: (e){
-        if(e.toString() == RestApiRepositoryImp.errorStr){
-          emit(CorrectionState.unauthorised);
-        } else {
-          emit(CorrectionState.failure);
-        }
-      });
+      await _repo.submitCorrection(
+          date: date,
+          type: type,
+          reason: reason,
+          punchIn: punchIn,
+          punchOut: punchOut);
+      emit(const CorrectionState(
+          status: CorrectionStatus.success,
+          message: "Correction request submitted."));
+    } on UnauthorisedException {
+      emit(const CorrectionState(status: CorrectionStatus.unauthorised));
+    } on AppException catch (e) {
+      emit(CorrectionState(status: CorrectionStatus.failure, message: e.message));
     } catch (e) {
-      emit(CorrectionState.failure);
+      emit(CorrectionState(
+          status: CorrectionStatus.failure,
+          message: "Couldn't submit the correction. Please try again."));
     }
   }
 }

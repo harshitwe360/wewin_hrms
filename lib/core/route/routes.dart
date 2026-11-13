@@ -10,6 +10,8 @@ class AppRoutes {
   static const profile = 'profile';
   static const dashboard = 'dashboard';
   static const verifyOTP = 'verify-otp';
+  static const forgotPassword = 'forgot-password';
+  static const resetPassword = 'reset-password';
   // static const punchLogs = 'punchLogs';
   // static const attendance = 'attendance';
   // static const attendanceDetail = 'attendance-details';
@@ -27,6 +29,16 @@ class AppRoutes {
         return SlideRouteBuilder(page: VerifyOtpScreen(
             arguments: (settings.arguments ?? {"isSignUp":false}) as Map<String, dynamic>),
             route: verifyOTP);
+      case forgotPassword:
+        // arguments: the email typed on the login screen (optional).
+        return SlideRouteBuilder(
+            page: ForgotPasswordScreen(email: (settings.arguments ?? "") as String),
+            route: forgotPassword);
+      case resetPassword:
+        // arguments: a reset link or token to pre-fill (optional).
+        return SlideRouteBuilder(
+            page: ResetPasswordScreen(tokenOrLink: (settings.arguments ?? "") as String),
+            route: resetPassword);
       case profile:
         return SlideRouteBuilder(page: const Profile(), route: AppRoutes.profile);
       case dashboard:

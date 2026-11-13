@@ -59,7 +59,7 @@ class ResignView extends StatelessWidget{
 
   void showResignDialog(BuildContext context) {
     TextEditingController reasonController = TextEditingController();
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -117,7 +117,7 @@ class ResignView extends StatelessWidget{
                     ),
                     SizedBox(height: 16),
                     Form(
-                      key: _formKey,
+                      key: formKey,
                       child: TextFormField(
                         controller: reasonController,
                         maxLines: 6,
@@ -130,7 +130,7 @@ class ResignView extends StatelessWidget{
                         ),
                         onChanged: (value) {
                           if(value.length>2) {
-                            _formKey.currentState!.validate();
+                            formKey.currentState!.validate();
                           }
                         },
                         validator: (value) {
@@ -170,7 +170,7 @@ class ResignView extends StatelessWidget{
                         Expanded(
                           child: ButtonFull(
                             onTap: () {
-                                if (_formKey.currentState!.validate()) {
+                                if (formKey.currentState!.validate()) {
                                   String reason = reasonController.text;
                                   context.read<ResignCubit>().submitResign(reason);
                                 }

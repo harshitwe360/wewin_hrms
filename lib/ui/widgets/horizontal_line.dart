@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class HorizontalLine extends StatelessWidget{
   final EdgeInsetsGeometry? padding;
   final double? height;
-  const HorizontalLine({Key? key, this.padding, this.height}) : super(key: key);
+  const HorizontalLine({super.key, this.padding, this.height});
 
 
   @override
@@ -18,7 +18,7 @@ class HorizontalLine extends StatelessWidget{
           borderRadius: const BorderRadius.all(Radius.circular(2.0)),
           boxShadow: <BoxShadow>[
             BoxShadow(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 offset: const Offset(1.1, 1.1),
                 blurRadius: 10.0),
           ],

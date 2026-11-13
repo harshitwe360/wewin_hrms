@@ -67,3 +67,18 @@ class LoginErrorState extends LoginState {
   @override
   List<Object> get props => [message];
 }
+
+/// OTP was sent; the OTP form switches to code entry.
+class LoginOtpSentState extends LoginState {
+  final String message;
+  final int expiresInSeconds;
+
+  /// Distinguishes repeated sends so listeners fire on every resend.
+  final DateTime sentAt;
+
+  LoginOtpSentState({required this.message, required this.expiresInSeconds})
+      : sentAt = DateTime.now();
+
+  @override
+  List<Object> get props => [message, expiresInSeconds, sentAt];
+}

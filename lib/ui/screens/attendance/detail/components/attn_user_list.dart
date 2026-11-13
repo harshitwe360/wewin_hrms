@@ -9,8 +9,8 @@ import 'filter_selected_ui_view.dart';
 import 'present_user_item.dart';
 
 class AttnUserList extends StatefulWidget {
-  const AttnUserList({Key? key,
-    required this.userList, required this.isLoading}) : super(key: key);
+  const AttnUserList({super.key,
+    required this.userList, required this.isLoading});
   final List<TeamAttendanceUserItem> userList;
   final bool isLoading;
 

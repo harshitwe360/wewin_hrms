@@ -125,15 +125,15 @@ class AttendanceItem {
 }
 
 enum AttendanceStatus {
-  ABSENT,
-  PRESENT,
-  WEEKEND
+  absent,
+  present,
+  weekend
 }
 
 final attendanceStatusValues = EnumValues({
-  "Absent": AttendanceStatus.ABSENT,
-  "Present": AttendanceStatus.PRESENT,
-  "weekend": AttendanceStatus.WEEKEND
+  "Absent": AttendanceStatus.absent,
+  "Present": AttendanceStatus.present,
+  "weekend": AttendanceStatus.weekend
 });
 
 class EnumValues<T> {

@@ -192,7 +192,7 @@ class AppHelper {
 
   static double timeToSeconds({String? time}) {
     // Split the time into hours, minutes, and seconds
-    print("Time : $time");
+    debugPrint("Time : $time");
     List<String> parts = (time ?? "00:00:00").split(':');
     int hours = int.parse(parts[0]);
     int minutes = int.parse(parts[1]);
@@ -368,7 +368,7 @@ class AppHelper {
     return formattedDate == formattedToday || formattedDate == formattedYesterday;
   }
 
-  static showSnackBar(
+  static void showSnackBar(
     BuildContext context, {
     SnackBarMode? snackBarMode,
     required String content,

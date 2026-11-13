@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/config/config.dart';
 
 class HorizontalLabelValue extends StatelessWidget{
-  const HorizontalLabelValue({Key? key, this.bgColor, this.iconBgColor,
+  const HorizontalLabelValue({super.key, this.bgColor, this.iconBgColor,
   required this.label, required this.value, this.isCircleIcon = false,
-    this.icon, this.leftPadding = 0, this.padding, this.margin})
-      : super(key: key);
+    this.icon, this.leftPadding = 0, this.padding, this.margin});
 
   final Color? bgColor;
   final Color? iconBgColor;

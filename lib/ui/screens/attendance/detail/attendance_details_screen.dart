@@ -3,12 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/config/config.dart';
 import 'bloc/att_user_list/att_user_list_bloc.dart';
 import 'bloc/calendar_cubit.dart';
-import 'bloc/calendar_log_cubit.dart';
 import 'my_attendance.dart';
 import 'team_attendance.dart';
 
 class AttendanceDetailScreen extends StatefulWidget {
-  const AttendanceDetailScreen({Key? key}) : super(key: key);
+  const AttendanceDetailScreen({super.key});
 
   @override
   State<AttendanceDetailScreen> createState() => _AttendanceDetailScreenState();
@@ -53,8 +52,6 @@ class _AttendanceDetailScreenState extends State<AttendanceDetailScreen>
         providers: [
           BlocProvider<CalendarCubit>(
               create: (context) => CalendarCubit()),
-          BlocProvider<CalendarLogCubit>(
-              create: (context) => CalendarLogCubit()),
           BlocProvider<AttUserListBloc>(
             create: (context) => AttUserListBloc()
               ..add(AttUserListInitEvent(

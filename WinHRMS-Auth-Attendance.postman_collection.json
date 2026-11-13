@@ -1,0 +1,400 @@
+{
+  "info": {
+    "_postman_id": "a8f3c2e1-9b4d-4f6a-8c1e-winhrms-att-01",
+    "name": "WinHRMS — Auth + Attendance",
+    "description": "Built from live OpenAPI at https://winhrms.wewinlimited.com/docs\n\nBase URL: https://winhrms.wewinlimited.com\n\n**Logout:** there is no server logout route. The web app clears the bearer token locally. Use folder \"Logout\" to clear `access_token` in this collection.\n\n**Token verification:** use `GET /api/auth/me`. HTTP 200 = valid token. HTTP 401 = invalid/expired/invalidated.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://winhrms.wewinlimited.com" },
+    { "key": "email", "value": "you@company.com" },
+    { "key": "password", "value": "your-password" },
+    { "key": "tenant_slug", "value": "your-tenant-slug" },
+    { "key": "access_token", "value": "" },
+    { "key": "session_uuid", "value": "" },
+    { "key": "latitude", "value": "23.2599" },
+    { "key": "longitude", "value": "77.4126" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{access_token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login",
+      "item": [
+        {
+          "name": "Login JSON (recommended)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login returns access_token', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.access_token).to.be.a('string').and.not.empty;",
+                  "  pm.collectionVariables.set('access_token', body.access_token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"tenant_slug\": \"{{tenant_slug}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login/json",
+            "description": "Primary login. Super admin may omit tenant_slug. Saves `access_token` into the collection variable."
+          }
+        },
+        {
+          "name": "Login OAuth2 form",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.access_token) pm.collectionVariables.set('access_token', body.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "{{email}}" },
+                { "key": "password", "value": "{{password}}" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Swagger OAuth2 form login. No tenant_slug on this route — prefer Login JSON for tenant users."
+          }
+        },
+        {
+          "name": "OTP request",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"tenant_slug\": \"{{tenant_slug}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/otp/request"
+          }
+        },
+        {
+          "name": "OTP verify",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.access_token) pm.collectionVariables.set('access_token', body.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"otp\": \"123456\",\n  \"tenant_slug\": \"{{tenant_slug}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/otp/verify"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Token verification",
+      "item": [
+        {
+          "name": "Verify token — GET /auth/me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Token is valid', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('id');",
+                  "  pm.expect(body).to.have.property('email');",
+                  "  pm.expect(body).to.have.property('role');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Server-side token check. Uses collection bearer auth.\n\n- 200: token accepted; returns current user\n- 401: invalid, expired, or invalidated session\n- 403: user not active / tenant suspended"
+          }
+        },
+        {
+          "name": "Verify token — invalid token expect 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Invalid token is rejected', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "invalid.token.value", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Negative check: forged/expired bearer must not return 200."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Attendance",
+      "item": [
+        {
+          "name": "Get today status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/attendance/today",
+            "description": "Current IST-day attendance row for the signed-in user."
+          }
+        },
+        {
+          "name": "Validate location",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}}\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/validate-location",
+            "description": "Pre-check geofence. Does not punch. Required when location_mandatory is true."
+          }
+        },
+        {
+          "name": "Punch in",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}}\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/punch-in",
+            "description": "Direct punch-in. Omit lat/lng when location is not mandatory. Add face_image_base64 when face is mandatory and you are not using the biometric session flow."
+          }
+        },
+        {
+          "name": "Break start",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/attendance/break/start"
+          }
+        },
+        {
+          "name": "Break end",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/attendance/break/end"
+          }
+        },
+        {
+          "name": "Punch out",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/api/attendance/punch-out"
+          }
+        },
+        {
+          "name": "Biometric session — start (in)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.session_uuid) pm.collectionVariables.set('session_uuid', body.session_uuid);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"in\"\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/biometric-sessions",
+            "description": "Starts gate-grade face session. Requires face_mandatory on the user. Saves session_uuid."
+          }
+        },
+        {
+          "name": "Biometric session — complete (in)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"in\",\n  \"latitude\": {{latitude}},\n  \"longitude\": {{longitude}},\n  \"frames\": [\n    {\n      \"captured_at_ms\": {{$timestamp}}000,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_1\"\n    },\n    {\n      \"captured_at_ms\": {{$timestamp}}150,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_2\"\n    },\n    {\n      \"captured_at_ms\": {{$timestamp}}300,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_3\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/biometric-sessions/{{session_uuid}}/complete",
+            "description": "Needs exactly 3 JPEG frames for the gate challenge. Replace image_base64 placeholders with real captures from the camera flow."
+          }
+        },
+        {
+          "name": "Biometric session — start (out)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.session_uuid) pm.collectionVariables.set('session_uuid', body.session_uuid);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"out\"\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/biometric-sessions"
+          }
+        },
+        {
+          "name": "Biometric session — complete (out)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"out\",\n  \"frames\": [\n    {\n      \"captured_at_ms\": {{$timestamp}}000,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_1\"\n    },\n    {\n      \"captured_at_ms\": {{$timestamp}}150,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_2\"\n    },\n    {\n      \"captured_at_ms\": {{$timestamp}}300,\n      \"action\": \"center\",\n      \"image_base64\": \"REPLACE_WITH_JPEG_BASE64_FRAME_3\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/attendance/biometric-sessions/{{session_uuid}}/complete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Logout",
+      "item": [
+        {
+          "name": "Logout — clear local token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('access_token', '');",
+                  "pm.collectionVariables.set('session_uuid', '');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Collection token cleared', function () {",
+                  "  pm.expect(pm.collectionVariables.get('access_token') || '').to.eql('');",
+                  "});",
+                  "pm.test('Server has no logout route — client clear only', function () {",
+                  "  pm.expect(true).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Live OpenAPI has **no** `/api/auth/logout`.\n\nWeb logout only removes the token from the browser. This request clears `access_token` in the collection, then calls `/auth/me` without a bearer so you can confirm the session is gone from Postman (expect 401)."
+          }
+        }
+      ]
+    }
+  ]
+}

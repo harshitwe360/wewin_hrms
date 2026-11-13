@@ -12,7 +12,6 @@ class PunchHoursView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int payableDays = 0;
     return AnimatedBuilder(
       animation: animationController!,
       child: Padding(
@@ -24,8 +23,7 @@ class PunchHoursView extends StatelessWidget {
                 // double workingTime = 0, goal = 0;
                 // String avgHrs = "0";
                 if (state is CalendarLoadedState) {
-                  if (state.userAttendance != null) {
-                    payableDays = state.userAttendance.present;
+                  {
                     // goal = state.userAttendance.goal;
                     /*double avg = ( workingTime/
                         state.userAttendance.presentDay.length);*/
